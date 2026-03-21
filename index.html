@@ -2,40 +2,46 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>強くてニューゲームクリック（重厚UI版）</title>
+<title>強くてニューゲームクリック（スマホ版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+  /* スマホのタッチ操作をスムーズにする */
+  html {
+    touch-action: manipulation;
+  }
+
   body {
     text-align: center;
     font-family: 'Impact', sans-serif;
-    margin-top: 50px;
+    margin: 30px 10px;
     background: radial-gradient(circle, #1a1a1a, #000000);
     color: #f0f0f0;
   }
 
   h1 {
-    font-size: 48px;
-    text-shadow: 4px 4px #000;
-    margin-bottom: 40px;
+    font-size: 36px; /* 少し小さめにして画面に収めやすく */
+    text-shadow: 3px 3px #000;
+    margin-bottom: 30px;
   }
 
   button {
-    padding: 25px 50px;
-    font-size: 24px;
+    padding: 30px 60px; /* タップしやすいサイズ */
+    font-size: 28px;
     font-weight: bold;
     background: linear-gradient(145deg, #ff0000, #800000);
     color: #fff;
     border: 3px solid #fff;
-    border-radius: 15px;
-    box-shadow: 0 0 20px #ff0000;
+    border-radius: 20px;
+    box-shadow: 0 0 25px #ff0000;
     text-shadow: 2px 2px #000;
     transition: all 0.2s;
-    margin: 10px;
+    margin: 15px;
     cursor: pointer;
   }
 
   button:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 40px #ff5500;
+    box-shadow: 0 0 45px #ff5500;
   }
 
   button:active {
@@ -44,11 +50,18 @@
   }
 
   #score, #highScore, #clickPower, #time {
-    font-size: 35px;
+    font-size: 32px; /* 少し大きめで読みやすく */
     font-weight: bold;
     text-shadow: 3px 3px #000;
     margin: 15px;
     transition: transform 0.1s;
+  }
+
+  /* 画面が小さいときに文字やボタンを少し縮小 */
+  @media (max-width: 360px) {
+    h1 { font-size: 30px; }
+    button { padding: 25px 50px; font-size: 24px; }
+    #score, #highScore, #clickPower, #time { font-size: 28px; }
   }
 </style>
 </head>
@@ -128,4 +141,4 @@
 </script>
 
 </body>
-  </html>
+</html>
