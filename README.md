@@ -1,2 +1,133 @@
 # -
 クリックゲームです
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>強くてニューゲームクリック（重厚UI版）</title>
+<style>
+  body {
+    text-align: center;
+    font-family: 'Impact', sans-serif;
+    margin-top: 50px;
+    background: radial-gradient(circle, #1a1a1a, #000000);
+    color: #f0f0f0;
+  }
+
+  h1 {
+    font-size: 48px;
+    text-shadow: 4px 4px #000;
+    margin-bottom: 40px;
+  }
+
+  button {
+    padding: 25px 50px;
+    font-size: 24px;
+    font-weight: bold;
+    background: linear-gradient(145deg, #ff0000, #800000);
+    color: #fff;
+    border: 3px solid #fff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #ff0000;
+    text-shadow: 2px 2px #000;
+    transition: all 0.2s;
+    margin: 10px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px #ff5500;
+  }
+
+  button:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 60px #ff8800 inset;
+  }
+
+  #score, #highScore, #clickPower, #time {
+    font-size: 35px;
+    font-weight: bold;
+    text-shadow: 3px 3px #000;
+    margin: 15px;
+    transition: transform 0.1s;
+  }
+</style>
+</head>
+<body>
+
+<h1>強くてニューゲームクリック</h1>
+
+<div>残り時間: <span id="time">10</span>秒</div>
+<div>スコア: <span id="score">0</span></div>
+<div>最高スコア: <span id="highScore">0</span></div>
+<div>クリック力: <span id="clickPower">1.00</span></div>
+
+<button id="clickBtn">クリック！</button>
+<button id="startBtn">ゲームスタート</button>
+
+<script>
+  let score = 0;
+  let time = 10;
+  let timer;
+
+  // クリック力と最高スコアをブラウザに保存
+  let clickPower = parseFloat(localStorage.getItem('clickPower')) || 1;
+  let highScore = parseInt(localStorage.getItem('highScore')) || 0;
+
+  const scoreDisplay = document.getElementById('score');
+  const timeDisplay = document.getElementById('time');
+  const highScoreDisplay = document.getElementById('highScore');
+  const clickPowerDisplay = document.getElementById('clickPower');
+  const clickBtn = document.getElementById('clickBtn');
+  const startBtn = document.getElementById('startBtn');
+
+  clickBtn.disabled = true;
+
+  function startGame() {
+    score = 0;
+    time = 10;
+    scoreDisplay.textContent = score;
+    timeDisplay.textContent = time;
+    clickPowerDisplay.textContent = clickPower.toFixed(2);
+    highScoreDisplay.textContent = highScore;
+    clickBtn.disabled = false;
+    startBtn.disabled = true;
+
+    timer = setInterval(() => {
+      time--;
+      timeDisplay.textContent = time;
+      if (time <= 0) {
+        clearInterval(timer);
+        clickBtn.disabled = true;
+        alert("時間切れ！スコアは " + Math.floor(score) + " です！");
+        
+        // スコアの100分の1だけクリック力を増やす
+        clickPower += score / 100;
+        localStorage.setItem('clickPower', clickPower);
+
+        if (score > highScore) {
+          highScore = Math.floor(score);
+          localStorage.setItem('highScore', highScore);
+        }
+        
+        startBtn.disabled = false;
+        clickPowerDisplay.textContent = clickPower.toFixed(2);
+      }
+    }, 1000);
+  }
+
+  clickBtn.addEventListener('click', () => {
+    score += clickPower;
+    scoreDisplay.textContent = Math.floor(score);
+
+    // スコアを弾ませる演出
+    scoreDisplay.style.transform = 'scale(1.5)';
+    setTimeout(() => scoreDisplay.style.transform = 'scale(1)', 100);
+  });
+
+  startBtn.addEventListener('click', startGame);
+</script>
+
+</body>
+</html>
