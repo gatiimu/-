@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>神クリックゲーム スマホ版</title>
+<title>神クリックゲーム v3 強化拡張版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html { touch-action: manipulation; font-size:16px; }
@@ -15,84 +15,98 @@ body {
   padding: 5px;
 }
 h1{ font-size:28px; text-shadow:0 0 10px cyan; margin:10px 0;}
-button {
-  padding: 16px 24px; margin:4px;
-  font-size:18px; border:none; border-radius:10px;
-  background:linear-gradient(45deg, red, orange); color:white;
-  min-width:90px;
-}
+button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radius:10px; background:linear-gradient(45deg, red, orange); color:white; min-width:90px; }
 .effect { position:absolute; animation: float 0.8s forwards; font-weight:bold; }
 @keyframes float { to { transform: translateY(-80px); opacity:0;} }
-
-/* メニュータブ */
 .menu-section { border:2px solid cyan; border-radius:10px; padding:10px; margin:6px 0; background: rgba(0,0,0,0.5);}
 .menu-section h2 { margin:0 0 6px 0; cursor:pointer; user-select:none; font-size:18px; }
 .menu-content.hidden { display:none; }
+#volumeSlider { width:80%; }
 @media(max-width:480px){ button{font-size:16px; padding:12px 18px;} }
 </style>
 </head>
 <body>
 
-<h1>神クリックゲーム スマホ版</h1>
+<h1>神クリックゲーム v3 強化拡張版</h1>
 
 <!-- ステータス -->
 <div class="menu-section">
-  <h2 onclick="toggleMenu(this)">📊 ステータス</h2>
-  <div class="menu-content" id="statusMenu">
-    時間: <span id="time">10</span><br>
-    スコア: <span id="score">0</span><br>
-    最高: <span id="high">0</span><br>
-    パワー: <span id="power">1</span><br>
-    コンボ: <span id="combo">0</span><br>
-    自動: <span id="auto">0</span>/秒<br>
-    転生: <span id="rebirth">0</span><br>
-    倍率: <span id="multi">1</span><br>
-  </div>
+<h2 onclick="toggleMenu(this)">📊 ステータス</h2>
+<div class="menu-content" id="statusMenu">
+時間: <span id="time">10</span><br>
+スコア: <span id="score">0</span><br>
+最高: <span id="high">0</span><br>
+パワー: <span id="power">1</span><br>
+コンボ: <span id="combo">0</span><br>
+自動: <span id="auto">0</span>/秒<br>
+転生: <span id="rebirth">0</span><br>
+倍率: <span id="multi">1</span><br>
+</div>
 </div>
 
 <!-- ゲーム操作 -->
 <div class="menu-section">
-  <h2 onclick="toggleMenu(this)">🎮 ゲーム操作</h2>
-  <div class="menu-content" id="gameMenu">
-    <button id="clickBtn">クリック</button><br>
-    <button onclick="start()">スタート</button>
-    <button onclick="skill()">スキル (10倍)</button>
-    <button onclick="rebirthAction()">転生</button>
-  </div>
+<h2 onclick="toggleMenu(this)">🎮 ゲーム操作</h2>
+<div class="menu-content" id="gameMenu">
+<button id="clickBtn">クリック</button><br>
+<button onclick="start()">スタート</button>
+<button onclick="skill()">スキル (10倍)</button>
+<button onclick="rebirthAction()">転生</button>
+</div>
 </div>
 
 <!-- ショップ/ガチャ -->
 <div class="menu-section">
-  <h2 onclick="toggleMenu(this)">🛒 ショップ/ガチャ</h2>
-  <div class="menu-content" id="shopMenu">
-    <button onclick="buyAuto(1)">自動 +1 (50)</button>
-    <button onclick="buyAuto(5)">自動 +5 (50×5)</button>
-    <button onclick="buyAuto(10)">自動 +10 (50×10)</button><br>
-    <button onclick="buyPower(1)">強化 +1 (100)</button>
-    <button onclick="buyPower(5)">強化 +5 (100×5)</button>
-    <button onclick="buyPower(10)">強化 +10 (100×10)</button><br>
-    <button onclick="gacha()">ガチャ (200)</button>
-  </div>
+<h2 onclick="toggleMenu(this)">🛒 ショップ/ガチャ</h2>
+<div class="menu-content" id="shopMenu">
+<button onclick="buyAuto(1)">自動 +1 (50)</button>
+<button onclick="buyPower(1)">強化 +1 (100)</button><br>
+<button onclick="gacha()">ガチャ (200)</button>
+<!-- 新しい強化 -->
+<button onclick="buyEnhancement('combo',1)">コンボ強化 (150)</button>
+<button onclick="buyEnhancement('crit',1)">クリ率強化 (150)</button>
+<button onclick="buyEnhancement('multi',1)">スコア倍率強化 (300)</button>
+</div>
 </div>
 
 <!-- スキルツリー -->
 <div class="menu-section">
-  <h2 onclick="toggleMenu(this)">🌳 スキルツリー</h2>
-  <div class="menu-content" id="skillMenu">
-    攻撃 <span id="s_click">0</span> <button onclick="buySkill('click')">+</button><br>
-    自動 <span id="s_auto">0</span> <button onclick="buySkill('auto')">+</button><br>
-    クリ率 <span id="s_crit">0</span> <button onclick="buySkill('crit')">+</button><br>
-    ガチャ <span id="s_gacha">0</span> <button onclick="buySkill('gacha')">+</button><br>
-  </div>
+<h2 onclick="toggleMenu(this)">🌳 スキルツリー</h2>
+<div class="menu-content" id="skillMenu">
+攻撃 <span id="s_click">0</span> <button onclick="buySkill('click')">+</button><br>
+自動 <span id="s_auto">0</span> <button onclick="buySkill('auto')">+</button><br>
+クリ率 <span id="s_crit">0</span> <button onclick="buySkill('crit')">+</button><br>
+ガチャ <span id="s_gacha">0</span> <button onclick="buySkill('gacha')">+</button><br>
+</div>
+</div>
+
+<!-- ボーナスアイテム/ガチャ情報 -->
+<div class="menu-section">
+<h2 onclick="toggleMenu(this)">⏱ ボーナス & ガチャ情報</h2>
+<div class="menu-content" id="bonusMenu">
+<button onclick="buyTimeExtension()">時間延長 +10秒 (150)</button>
+<button onclick="showGachaChance()">ガチャ確率確認</button>
+</div>
+</div>
+
+<!-- 音量調整 -->
+<div class="menu-section">
+<h2 onclick="toggleMenu(this)">🔊 音量設定</h2>
+<div class="menu-content" id="volumeMenu">
+<input type="range" min="0" max="1" step="0.01" id="volumeSlider" value="0.5">
+<span id="volumeValue">50%</span>
+</div>
 </div>
 
 <div id="msg" style="margin:6px;"></div>
 
 <!-- 音 -->
-<audio id="audioClick" src="click.mp3"></audio>
-<audio id="audioCrit" src="crit.mp3"></audio>
-<audio id="audioGacha" src="gacha.mp3"></audio>
-<audio id="audioSkill" src="skill.mp3"></audio>
+<audio id="audioClick" src="https://arspark.jp/material/wp-content/uploads/2023/08/arsnd_00236_buttonon.mp3"></audio>
+<audio id="audioCrit" src="https://orangefreesounds.com/wp-content/uploads/2024/01/Critical-hit-sound-effect.mp3"></audio>
+<audio id="audioGacha" src="https://arspark.jp/material/wp-content/uploads/2023/08/arsnd_00246_rareitem.mp3"></audio>
+<audio id="audioSkill" src="https://arspark.jp/material/wp-content/uploads/2023/04/arsnd_00029_levelups.mp3"></audio>
+<audio id="audioLevelUp" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Game-level-up-sound-effect.mp3"></audio>
+<audio id="audioRebirth" src="https://arspark.jp/material/wp-content/uploads/2023/04/arsnd_00003_coinmari.mp3"></audio>
 
 <script>
 // 基本変数
@@ -103,7 +117,7 @@ let high=parseInt(localStorage.getItem("h"))||0;
 let rebirth=parseInt(localStorage.getItem("r"))||0;
 let skillActive=false;
 let skills = JSON.parse(localStorage.getItem("skills")) || {click:0, auto:0, crit:0, gacha:0};
-
+let multiBonus = parseFloat(localStorage.getItem("multiBonus"))||1; // スコア倍率強化
 const el=id=>document.getElementById(id);
 
 // メニュー開閉
@@ -111,66 +125,69 @@ function toggleMenu(header){ header.nextElementSibling.classList.toggle("hidden"
 
 // 表示更新
 function update(){
-  el("score").textContent=Math.floor(score);
-  el("time").textContent=time;
   el("power").textContent=power.toFixed(2);
   el("combo").textContent=combo;
   el("auto").textContent=auto;
   el("high").textContent=high;
   el("rebirth").textContent=rebirth;
-  el("multi").textContent=(1+rebirth*0.2).toFixed(1);
-
+  el("multi").textContent=multiBonus.toFixed(1);
   el("s_click").textContent=skills.click;
   el("s_auto").textContent=skills.auto;
   el("s_crit").textContent=skills.crit;
   el("s_gacha").textContent=skills.gacha;
 }
 
+// スコアアニメーション
+function updateScoreAnimation(){
+  let displayed = parseFloat(el("score").textContent) || 0;
+  let diff = score - displayed;
+  if(Math.abs(diff) < 1){
+    el("score").textContent = Math.floor(score);
+    return;
+  }
+  el("score").textContent = Math.floor(displayed + diff/5);
+  requestAnimationFrame(updateScoreAnimation);
+}
+
 // クリック処理
 function clickAction(x=200,y=300){
-  document.getElementById("audioClick").currentTime=0;
-  document.getElementById("audioClick").play();
-
+  el("audioClick").currentTime=0; el("audioClick").play();
   let multi = 1 + Math.log2(combo+1);
   let critChance = 0.1 + skills.crit*0.02;
   let crit = Math.random()<critChance;
   if(crit){
-    document.getElementById("audioCrit").currentTime=0;
-    document.getElementById("audioCrit").play();
+    el("audioCrit").currentTime=0; el("audioCrit").play();
     document.body.style.transform="translateX(5px)";
     setTimeout(()=>document.body.style.transform="",50);
   }
-
-  let gain = power*multi*(1+rebirth*0.2)*(1+skills.click*0.2);
+  let gain = power*multi*(1+rebirth*0.2)*(1+skills.click*0.2)*multiBonus;
   if(skillActive) gain *= 10;
-
   score += gain;
-  combo++;
-
+  combo += skills.click; // コンボ強化分も加算
   show("+"+gain.toFixed(1),x,y,crit);
-
   clearTimeout(window.comboReset);
   window.comboReset = setTimeout(()=>combo=0,1000);
 
-  update();
+  if(score>high && score-high>10){
+    el("audioLevelUp").currentTime=0; el("audioLevelUp").play();
+  }
+
+  updateScoreAnimation();
 }
-el("clickBtn").onclick = e=>clickAction(e.clientX,e.clientY);
 
 // ゲーム開始
 function start(){
   score=0; time=10; combo=0;
   clearInterval(window.t); clearInterval(window.a);
-
   window.t=setInterval(()=>{
     time--;
     if(time<=3) document.body.style.background="darkred";
     if(time<=0) end();
-    update();
+    el("time").textContent=time;
   },1000);
-
   window.a=setInterval(()=>{
-    score += auto*power*(1+rebirth*0.2)*(1+skills.auto*0.5);
-    update();
+    score += auto*power*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus;
+    updateScoreAnimation();
   },1000);
 }
 
@@ -181,97 +198,83 @@ function end(){
   power += Math.sqrt(score)*0.5;
   localStorage.setItem("p",power);
   localStorage.setItem("a",auto);
-  update();
+  updateScoreAnimation();
   alert("スコア:"+Math.floor(score));
 }
 
 // まとめ購入
-function buyAuto(count=1){
-  let cost = 50*count;
+function buyAuto(count=1){ let cost=50*count; if(score<cost){ alert("スコア不足"); return; } score-=cost; auto+=count; updateScoreAnimation();}
+function buyPower(count=1){ let cost=100*count; if(score<cost){ alert("スコア不足"); return; } score-=cost; power+=0.5*count; updateScoreAnimation();}
+
+// 新しい強化
+function buyEnhancement(type,count=1){
+  let costMap = {combo:150, crit:150, multi:300};
+  let cost = costMap[type]*count;
   if(score<cost){ alert("スコア不足"); return; }
-  score-=cost; auto+=count; update();
-}
-function buyPower(count=1){
-  let cost = 100*count;
-  if(score<cost){ alert("スコア不足"); return; }
-  score-=cost; power+=0.5*count; update();
+  score -= cost;
+  switch(type){
+    case "combo": skills.click += count; el("msg").textContent=`コンボ強化 +${count}`; break;
+    case "crit": skills.crit += count; el("msg").textContent=`クリ率強化 +${count}`; break;
+    case "multi": multiBonus += 0.1*count; el("msg").textContent=`スコア倍率強化 +${(0.1*count).toFixed(1)}倍`; break;
+  }
+  localStorage.setItem("skills",JSON.stringify(skills));
+  localStorage.setItem("multiBonus",multiBonus);
+  updateScoreAnimation();
 }
 
 // ガチャ
 function gacha(){
   if(score<200){ el("msg").textContent="スコア不足"; return;}
   score-=200;
-  document.getElementById("audioGacha").currentTime=0;
-  document.getElementById("audioGacha").play();
-
+  el("audioGacha").currentTime=0; el("audioGacha").play();
   let luck = skills.gacha*0.02;
   let r=Math.random()+luck;
   let msg="";
   if(r<0.5){ power+=1; msg="ノーマル +1"; }
-  else if(r<0.8){ auto+=2; msg="レア 自動+2"; }
-  else if(r<0.95){ combo+=10; msg="激レア コンボ+10"; }
-  else{ power*=2; msg="神 パワー2倍"; }
+  else if(r<0.8){ auto+=2; msg="レア 自動+2"; el("audioSkill").play();}
+  else if(r<0.95){ combo+=10; msg="激レア コンボ+10"; el("audioSkill").play();}
+  else{ power*=2; msg="神 パワー2倍"; el("audioSkill").play();}
   el("msg").textContent=msg;
-  update();
+  updateScoreAnimation();
 }
 
 // スキル発動
-function skill(){
-  if(skillActive) return;
-  skillActive=true;
-  el("msg").textContent="🔥10倍中！";
-  document.getElementById("audioSkill").currentTime=0;
-  document.getElementById("audioSkill").play();
-  setTimeout(()=>{skillActive=false; el("msg").textContent="";},5000);
-}
+function skill(){ if(skillActive) return; skillActive=true; el("msg").textContent="🔥10倍中！"; el("audioSkill").play(); setTimeout(()=>{skillActive=false; el("msg").textContent="";},5000); }
 
 // 転生
-function rebirthAction(){
-  let rp=Math.floor(Math.sqrt(score/1000));
-  if(rp<=0){ alert("スコア不足"); return; }
-  if(!confirm("転生して "+rp+" ポイント獲得？")) return;
-  rebirth+=rp;
-  score=0; power=1; auto=0; combo=0;
-  localStorage.setItem("r",rebirth);
-  localStorage.setItem("p",power);
-  localStorage.setItem("a",auto);
-  update();
-}
+function rebirthAction(){ let rp=Math.floor(Math.sqrt(score/1000)); if(rp<=0){ alert("スコア不足"); return;} if(!confirm("転生して "+rp+" ポイント獲得？")) return; rebirth+=rp; score=0; power=1; auto=0; combo=0; localStorage.setItem("r",rebirth); localStorage.setItem("p",power); localStorage.setItem("a",auto); updateScoreAnimation(); el("audioRebirth").play(); }
 
 // スキル購入
-function buySkill(type){
-  if(rebirth<=0){alert("RP不足"); return;}
-  rebirth--; skills[type]++; 
-  localStorage.setItem("r",rebirth);
-  localStorage.setItem("skills",JSON.stringify(skills));
-  update();
-}
+function buySkill(type){ if(rebirth<=0){alert("RP不足"); return;} rebirth--; skills[type]++; localStorage.setItem("r",rebirth); localStorage.setItem("skills",JSON.stringify(skills)); updateScoreAnimation(); }
 
 // エフェクト
-function show(text,x,y,crit){
-  let e=document.createElement("div");
-  e.className="effect";
-  e.textContent=text;
-  e.style.left=x+"px";
-  e.style.top=y+"px";
-  e.style.color=crit?"red":"yellow";
-  document.body.appendChild(e);
-  setTimeout(()=>e.remove(),800);
-}
+function show(text,x,y,crit){ let e=document.createElement("div"); e.className="effect"; e.textContent=text; e.style.left=x+"px"; e.style.top=y+"px"; e.style.color=crit?"red":"yellow"; document.body.appendChild(e); setTimeout(()=>e.remove(),800); }
+
+// ボーナスアイテム
+function buyTimeExtension(){ let cost = 150; if(score < cost){ alert("スコア不足"); return; } score -= cost; time += 10; el("msg").textContent = "⏱ 10秒延長!"; updateScoreAnimation(); }
+
+// ガチャ確率表示
+function showGachaChance(){ let luck = skills.gacha*0.02; let msg = `ノーマル 50%\nレア 30%\n激レア 15%\n神 ${Math.min(5+luck*100,100).toFixed(1)}%`; el("msg").textContent = msg; }
+
+// 音量調整
+const volumeSlider = el("volumeSlider");
+const volumeValue = el("volumeValue");
+volumeSlider.oninput = ()=>{ let vol = parseFloat(volumeSlider.value); ["audioClick","audioCrit","audioGacha","audioSkill","audioLevelUp","audioRebirth"].forEach(id => el(id).volume = vol); volumeValue.textContent = Math.round(vol*100) + "%"; }
 
 // 放置報酬
-window.onload=()=>{
-  let last=localStorage.getItem("last");
-  if(last){ let diff=(Date.now()-last)/1000; score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5);}
-  update();
-};
+window.onload=()=>{ let last=localStorage.getItem("last"); if(last){ let diff=(Date.now()-last)/1000; score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus;} update(); updateScoreAnimation(); };
 window.onbeforeunload=()=>{ localStorage.setItem("last",Date.now()); }
 
 // リセット
 function reset(){ localStorage.clear(); location.reload(); }
 
-update();
-</script>
+// 初期表示
+update(); updateScoreAnimation();
 
+// クリック（PC/スマホ）対応、長押し非対応
+el("clickBtn").onclick = e=>{ clickAction(e.clientX, e.clientY); updateScoreAnimation(); };
+el("clickBtn").addEventListener("touchstart", e=>{ e.preventDefault(); clickAction(e.touches[0].clientX, e.touches[0].clientY); updateScoreAnimation(); });
+
+</script>
 </body>
 </html>
