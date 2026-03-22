@@ -2,18 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>まつりちゃんクリックゲーム v3 軽量版</title>
+<title>神クリックゲーム v3 アップグレード版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html { touch-action: manipulation; font-size:16px; }
-body {
-  text-align: center;
-  font-family: Impact, sans-serif;
-  background: radial-gradient(circle, #0f2027, #000);
-  color: white;
-  margin: 0;
-  padding: 5px;
-}
+body { text-align:center; font-family:Impact,sans-serif; background:radial-gradient(circle,#0f2027,#000); color:white; margin:0; padding:5px;}
 h1{ font-size:28px; text-shadow:0 0 10px cyan; margin:10px 0;}
 button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radius:10px; background:linear-gradient(45deg, red, orange); color:white; min-width:90px; }
 .effect { position:absolute; animation: float 0.8s forwards; font-weight:bold; }
@@ -27,7 +20,7 @@ button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radi
 </head>
 <body>
 
-<h1>神クリックゲーム v3 軽量版</h1>
+<h1>まつりちゃんクリックゲーム</h1>
 
 <div class="menu-section">
 <h2 onclick="toggleMenu(this)">📊 ステータス</h2>
@@ -53,12 +46,12 @@ button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radi
 <div class="menu-section">
 <h2 onclick="toggleMenu(this)">🛒 ショップ/ガチャ</h2>
 <div class="menu-content" id="shopMenu">
-<button onclick="buyAuto(1)">自動 +1 (50)</button>
-<button onclick="buyPower(1)">強化 +1 (100)</button><br>
+<button onclick="buyAuto(1)">自動 +1</button>
+<button onclick="buyPower(1)">強化 +1</button><br>
 <button onclick="gacha()">ガチャ (200)</button>
-<button onclick="buyEnhancement('combo',1)">コンボ強化 (150)</button>
-<button onclick="buyEnhancement('crit',1)">クリ率強化 (150)</button>
-<button onclick="buyEnhancement('multi',1)">スコア倍率強化 (300)</button>
+<button onclick="buyEnhancement('combo',1)">コンボ強化</button>
+<button onclick="buyEnhancement('crit',1)">クリ率強化</button>
+<button onclick="buyEnhancement('multi',1)">スコア倍率強化</button>
 </div>
 </div>
 
@@ -75,7 +68,7 @@ button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radi
 <div class="menu-section">
 <h2 onclick="toggleMenu(this)">⏱ ボーナス & ガチャ情報</h2>
 <div class="menu-content" id="bonusMenu">
-<button onclick="buyTimeExtension()">時間延長 +10秒 (150)</button>
+<button onclick="buyTimeExtension()">時間延長 +10秒</button>
 </div>
 </div>
 
@@ -100,8 +93,8 @@ button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radi
 // --- メニュー開閉 ---
 function toggleMenu(header){ header.nextElementSibling.classList.toggle("hidden"); }
 
-// --- ここから統合JS ---
-let score=0,time=10,combo=0;
+// --- ゲーム初期値 ---
+let score=0, time=10, combo=0;
 let power=parseFloat(localStorage.getItem("p"))||1;
 let auto=parseFloat(localStorage.getItem("a"))||0;
 let high=parseInt(localStorage.getItem("h"))||0;
@@ -109,11 +102,14 @@ let rebirth=parseInt(localStorage.getItem("r"))||0;
 let skillActive=false;
 let skills=JSON.parse(localStorage.getItem("skills"))||{click:0,auto:0,crit:0,gacha:0};
 let multiBonus=parseFloat(localStorage.getItem("multiBonus"))||1;
+
+// 購入回数管理（価格上昇用）
+let buyCount = JSON.parse(localStorage.getItem("buyCount")) || {combo:0,crit:0,multi:0,power:0,auto:0,skill:{click:0,auto:0,crit:0,gacha:0}};
+
 const el=id=>document.getElementById(id);
 let lastSound=0;
 function playSound(id){const now=Date.now();if(now-lastSound<50)return;el(id).currentTime=0;el(id).play();lastSound=now;}
 function updateUI(){
-  el("time").textContent=Math.ceil(time);
   el("score").textContent=Math.floor(score);
   el("power").textContent=power.toFixed(2);
   el("combo").textContent=combo;
@@ -124,57 +120,142 @@ function updateUI(){
   el("s_crit").textContent=skills.crit;
   el("s_gacha").textContent=skills.gacha;
 }
+
+// --- クリックアクション ---
 function clickAction(x=200,y=300){
   playSound("audioClick");
-  let multi=1+Math.log2(combo+1);
-  let critChance=0.1+skills.crit*0.02;
-  let crit=Math.random()<critChance;
-  if(crit)playSound("audioCrit");
-  let gain=power*multi*(1+rebirth*0.2)*(1+skills.click*0.2)*multiBonus;
-  if(skillActive) gain*=10;
-  score+=gain; combo+=skills.click;
+  let multi = 1 + Math.log2(combo+1);
+  let critChance = 0.1 + skills.crit*0.02;
+  let crit = Math.random() < critChance;
+  if(crit) playSound("audioCrit");
+  let gain = power * multi * (1 + rebirth*0.2) * (1 + skills.click*0.2) * multiBonus;
+  if(skillActive) gain *= 10;
+  score += gain; combo += skills.click;
   clearTimeout(window.comboReset);
   window.comboReset=setTimeout(()=>combo=0,1000);
   updateUI();
-  show("+"+gain.toFixed(1),x,y,crit);
-  if(score>high && score-high>10)playSound("audioLevelUp");
+  show("+"+gain.toFixed(1), x, y, crit);
+  if(score>high && score-high>10) playSound("audioLevelUp");
 }
-function skill(){if(skillActive)return;skillActive=true;el("msg").textContent="🔥10倍中！";playSound("audioSkill");setTimeout(()=>{skillActive=false;el("msg").textContent="";},5000);}
-function rebirthAction(){let rp=Math.floor(Math.sqrt(score/1000));if(rp<=0){alert("スコア不足");return;}if(!confirm("転生して "+rp+" ポイント獲得？"))return;rebirth+=rp;score=0;power=1;auto=0;combo=0;localStorage.setItem("r",rebirth);localStorage.setItem("p",power);localStorage.setItem("a",auto);updateUI();playSound("audioRebirth");}
-function buySkill(type){if(rebirth<=0){alert("RP不足");return;}rebirth--;skills[type]++;localStorage.setItem("r",rebirth);localStorage.setItem("skills",JSON.stringify(skills));updateUI();}
+
+// --- スキル発動 ---
+function skill(){ if(skillActive) return; skillActive=true; el("msg").textContent="🔥10倍中！"; playSound("audioSkill"); setTimeout(()=>{skillActive=false;el("msg").textContent="";},5000); }
+
+// --- 転生 ---
+function rebirthAction(){
+  let rp = Math.floor(Math.sqrt(score/1000));
+  if(rp<=0){ alert("スコア不足"); return; }
+  if(!confirm("転生して "+rp+" ポイント獲得？")) return;
+  rebirth += rp; score=0; power=1; auto=0; combo=0;
+  localStorage.setItem("r",rebirth);
+  localStorage.setItem("p",power);
+  localStorage.setItem("a",auto);
+  updateUI();
+  playSound("audioRebirth");
+}
+
+// --- スキル購入（RP使用） ---
+function buySkill(type){
+  let cost = Math.floor(1 * Math.pow(1.5, buyCount.skill[type])); // RP消費上昇
+  if(rebirth < cost){ alert("RP不足"); return; }
+  rebirth -= cost;
+  skills[type]++;
+  buyCount.skill[type]++;
+  localStorage.setItem("skills", JSON.stringify(skills));
+  localStorage.setItem("r", rebirth);
+  localStorage.setItem("buyCount", JSON.stringify(buyCount));
+  updateUI();
+}
+
+// --- ガチャ ---
 function gacha(){
-  if(score<200){el("msg").textContent="スコア不足";return;}
-  score-=200;updateUI();
-  let slot=document.createElement("div");slot.className="effect";slot.style.left="50%";slot.style.top="50%";slot.style.fontSize="24px";slot.style.transform="translate(-50%, -50%)";document.body.appendChild(slot);
+  if(score<200){ el("msg").textContent="スコア不足"; return; }
+  score -= 200; updateUI();
+  let slot=document.createElement("div"); slot.className="effect";
+  slot.style.left="50%"; slot.style.top="50%"; slot.style.fontSize="24px"; slot.style.transform="translate(-50%, -50%)";
+  document.body.appendChild(slot);
   let count=0;
   let spin=setInterval(()=>{
     const icons=["🎁","✨","💎","🔥"];
-    slot.textContent=icons[Math.floor(Math.random()*icons.length)];
+    slot.textContent = icons[Math.floor(Math.random()*icons.length)];
     count++;
-    if(count>10){clearInterval(spin);let luck=skills.gacha*0.02;let r=Math.random()+luck;let msg="",color="";
-      if(r<0.5){power+=1;msg="ノーマル +1";color="yellow";playSound("audioClick");}
-      else if(r<0.8){auto+=2;msg="レア 自動+2";color="blue";playSound("audioSkill");}
-      else if(r<0.95){combo+=10;msg="激レア コンボ+10";color="purple";playSound("audioSkill");}
-      else{power*=2;msg="神 パワー2倍";color="red";playSound("audioSkill");}
-      slot.textContent=msg;slot.style.color=color;slot.style.fontSize="28px";setTimeout(()=>slot.remove(),1500);updateUI();
+    if(count>10){
+      clearInterval(spin);
+      let luck = skills.gacha*0.02;
+      let r = Math.random() + luck;
+      let msg="", color="";
+      if(r<0.5){ power+=1; msg="ノーマル +1"; color="yellow"; playSound("audioClick"); }
+      else if(r<0.8){ auto+=2; msg="レア 自動+2"; color="blue"; playSound("audioSkill"); }
+      else if(r<0.95){ combo+=10; msg="激レア コンボ+10"; color="purple"; playSound("audioSkill"); }
+      else{ power*=2; msg="神 パワー2倍"; color="red"; playSound("audioSkill"); }
+      slot.textContent=msg; slot.style.color=color; slot.style.fontSize="28px"; setTimeout(()=>slot.remove(),1500);
+      updateUI();
     }
   },100);
 }
-function buyTimeExtension(){let cost=150;if(score<cost){alert("スコア不足");return;}score-=cost;time+=10;el("msg").textContent="⏱ 10秒延長!";updateUI();}
-function buyEnhancement(type,count=1){const costMap={combo:150,crit:150,multi:300};let cost=costMap[type]*count;if(score<cost){alert("スコア不足");return;}score-=cost;switch(type){case"combo":skills.click+=count;el("msg").textContent=`コンボ強化 +${count}`;break;case"crit":skills.crit+=count;el("msg").textContent=`クリ率強化 +${count}`;break;case"multi":multiBonus+=0.1*count;el("msg").textContent=`スコア倍率強化 +${(0.1*count).toFixed(1)}倍`;break;}localStorage.setItem("skills",JSON.stringify(skills));localStorage.setItem("multiBonus",multiBonus);updateUI();}
-function start(){score=0;time=10;combo=0;function loop(){if(time>0){time-=0.1;score+=auto*power*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus/10;updateUI();requestAnimationFrame(loop);}else{end();}}loop();}
-function end(){if(score>high){high=score;localStorage.setItem("h",high);}power+=Math.sqrt(score)*0.5;localStorage.setItem("p",power);localStorage.setItem("a",auto);updateUI();alert("スコア:"+Math.floor(score));}
-function show(text,x,y,crit){let e=document.createElement("div");e.className="effect";e.textContent=text;e.style.left=x+"px";e.style.top=y+"px";e.style.color=crit?"red":"yellow";document.body.appendChild(e);setTimeout(()=>e.remove(),800);}
+
+// --- アップグレード購入 ---
+function buyEnhancement(type, count=1){
+  const baseCost = {combo:150, crit:150, multi:300};
+  let cost=0;
+  for(let i=0;i<count;i++){
+    cost += Math.floor(baseCost[type]*Math.pow(1.2, buyCount[type]));
+    buyCount[type]++;
+  }
+  if(score<cost){ alert("スコア不足"); return; }
+
+  score -= cost;
+  switch(type){
+    case "combo": skills.click+=count; el("msg").textContent=`コンボ強化 +${count}`; break;
+    case "crit": skills.crit+=count; el("msg").textContent=`クリ率強化 +${count}`; break;
+    case "multi": multiBonus+=0.1*count; el("msg").textContent=`スコア倍率強化 +${(0.1*count).toFixed(1)}倍`; break;
+  }
+  localStorage.setItem("skills", JSON.stringify(skills));
+  localStorage.setItem("multiBonus", multiBonus);
+  localStorage.setItem("buyCount", JSON.stringify(buyCount));
+  updateUI();
+}
+
+// --- 自動収益とパワー購入 ---
+function buyAuto(count=1){
+  const base=50; let cost=0;
+  for(let i=0;i<count;i++){ cost+=Math.floor(base*Math.pow(1.3,buyCount.auto)); buyCount.auto++; }
+  if(score<cost){ alert("スコア不足"); return; }
+  score-=cost; auto+=count; localStorage.setItem("a",auto); localStorage.setItem("buyCount", JSON.stringify(buyCount)); updateUI();
+}
+function buyPower(count=1){
+  const base=100; let cost=0;
+  for(let i=0;i<count;i++){ cost+=Math.floor(base*Math.pow(1.3,buyCount.power)); buyCount.power++; }
+  if(score<cost){ alert("スコア不足"); return; }
+  score-=cost; power+=count; localStorage.setItem("p",power); localStorage.setItem("buyCount", JSON.stringify(buyCount)); updateUI();
+}
+
+// --- 時間延長 ---
+function buyTimeExtension(){ let cost=150; if(score<cost){ alert("スコア不足"); return; } score-=cost; time+=10; el("msg").textContent="⏱ 10秒延長!"; updateUI(); }
+
+// --- エフェクト表示 ---
+function show(text,x,y,crit){
+  let e=document.createElement("div"); e.className="effect";
+  e.textContent=text; e.style.left=x+"px"; e.style.top=y+"px";
+  e.style.color=crit?"red":"yellow";
+  document.body.appendChild(e); setTimeout(()=>e.remove(),800);
+}
+
+// --- クリックボタン ---
 el("clickBtn").onclick=e=>{clickAction(e.clientX,e.clientY);};
 el("clickBtn").addEventListener("touchstart",e=>{e.preventDefault();clickAction(e.touches[0].clientX,e.touches[0].clientY);});
 
-// 音量調整
-const volumeSlider=el("volumeSlider");const volumeValue=el("volumeValue");
-volumeSlider.oninput=()=>{let vol=parseFloat(volumeSlider.value);["audioClick","audioCrit","audioGacha","audioSkill","audioLevelUp","audioRebirth"].forEach(id=>el(id).volume=vol);volumeValue.textContent=Math.round(vol*100)+"%";}
+// --- 音量調整 ---
+const volumeSlider=el("volumeSlider"); const volumeValue=el("volumeValue");
+volumeSlider.oninput=()=>{ let vol=parseFloat(volumeSlider.value); ["audioClick","audioCrit","audioGacha","audioSkill","audioLevelUp","audioRebirth"].forEach(id=>el(id).volume=vol); volumeValue.textContent=Math.round(vol*100)+"%"; }
 
-// 放置報酬
-window.onload=()=>{let last=localStorage.getItem("last");if(last){let diff=(Date.now()-last)/1000;score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus;}updateUI();};
-window.onbeforeunload=()=>{localStorage.setItem("last",Date.now());}
+// --- 放置報酬 ---
+window.onload=()=>{
+  let last=localStorage.getItem("last");
+  if(last){ let diff=(Date.now()-last)/1000; score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus; }
+  updateUI();
+};
+window.onbeforeunload=()=>{ localStorage.setItem("last",Date.now()); }
 
 </script>
 </body>
