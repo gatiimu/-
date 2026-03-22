@@ -1,222 +1,277 @@
-<!DOCTYPE html><html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>強くてニューゲームクリック 神版</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><style>
-html { touch-action: manipulation; }
-
+<title>神クリックゲーム スマホ版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html { touch-action: manipulation; font-size:16px; }
 body {
   text-align: center;
   font-family: Impact, sans-serif;
   background: radial-gradient(circle, #0f2027, #000);
   color: white;
-  margin: 10px;
+  margin: 0;
+  padding: 5px;
 }
-
-h1 {
-  font-size: 34px;
-  text-shadow: 0 0 15px cyan;
-}
-
-#stats div {
-  margin: 6px;
-  font-size: 18px;
-}
-
+h1{ font-size:28px; text-shadow:0 0 10px cyan; margin:10px 0;}
 button {
-  padding: 18px 35px;
-  font-size: 20px;
-  margin: 8px;
-  border-radius: 15px;
-  border: none;
-  color: white;
-  background: linear-gradient(45deg, #ff0000, #ff8800);
-  box-shadow: 0 0 15px red;
+  padding: 16px 24px; margin:4px;
+  font-size:18px; border:none; border-radius:10px;
+  background:linear-gradient(45deg, red, orange); color:white;
+  min-width:90px;
 }
+.effect { position:absolute; animation: float 0.8s forwards; font-weight:bold; }
+@keyframes float { to { transform: translateY(-80px); opacity:0;} }
 
-button:active {
-  transform: scale(0.95);
-}
+/* メニュータブ */
+.menu-section { border:2px solid cyan; border-radius:10px; padding:10px; margin:6px 0; background: rgba(0,0,0,0.5);}
+.menu-section h2 { margin:0 0 6px 0; cursor:pointer; user-select:none; font-size:18px; }
+.menu-content.hidden { display:none; }
+@media(max-width:480px){ button{font-size:16px; padding:12px 18px;} }
+</style>
+</head>
+<body>
 
-.effect {
-  position: absolute;
-  font-weight: bold;
-  animation: float 0.8s forwards;
-}
+<h1>神クリックゲーム スマホ版</h1>
 
-@keyframes float {
-  from { transform: translateY(0); opacity:1;}
-  to { transform: translateY(-80px); opacity:0;}
-}
+<!-- ステータス -->
+<div class="menu-section">
+  <h2 onclick="toggleMenu(this)">📊 ステータス</h2>
+  <div class="menu-content" id="statusMenu">
+    時間: <span id="time">10</span><br>
+    スコア: <span id="score">0</span><br>
+    最高: <span id="high">0</span><br>
+    パワー: <span id="power">1</span><br>
+    コンボ: <span id="combo">0</span><br>
+    自動: <span id="auto">0</span>/秒<br>
+    転生: <span id="rebirth">0</span><br>
+    倍率: <span id="multi">1</span><br>
+  </div>
+</div>
 
-/* ガチャ演出 */
-#gachaResult {
-  font-size: 24px;
-  margin: 15px;
-  height: 30px;
-  text-shadow: 0 0 10px gold;
-}
-</style></head><body><h1>強くてニューゲームクリック 神版</h1><div id="stats">
-  <div>時間: <span id="time">10</span></div>
-  <div>スコア: <span id="score">0</span></div>
-  <div>最高: <span id="highScore">0</span></div>
-  <div>クリック力: <span id="power">1</span></div>
-  <div>コンボ: <span id="combo">0</span></div>
-  <div>自動: <span id="auto">0</span>/秒</div>
-</div><div id="gachaResult"></div><button id="clickBtn">クリック！</button><br>
-<button onclick="startGame()">スタート</button>
-<button onclick="buyAuto()">自動強化 (50)</button>
-<button onclick="buyPower()">クリック強化 (100)</button>
-<button onclick="gacha()">ガチャ (200)</button>
-<button onclick="resetData()">リセット</button>
+<!-- ゲーム操作 -->
+<div class="menu-section">
+  <h2 onclick="toggleMenu(this)">🎮 ゲーム操作</h2>
+  <div class="menu-content" id="gameMenu">
+    <button id="clickBtn">クリック</button><br>
+    <button onclick="start()">スタート</button>
+    <button onclick="skill()">スキル (10倍)</button>
+    <button onclick="rebirthAction()">転生</button>
+  </div>
+</div>
+
+<!-- ショップ/ガチャ -->
+<div class="menu-section">
+  <h2 onclick="toggleMenu(this)">🛒 ショップ/ガチャ</h2>
+  <div class="menu-content" id="shopMenu">
+    <button onclick="buyAuto(1)">自動 +1 (50)</button>
+    <button onclick="buyAuto(5)">自動 +5 (50×5)</button>
+    <button onclick="buyAuto(10)">自動 +10 (50×10)</button><br>
+    <button onclick="buyPower(1)">強化 +1 (100)</button>
+    <button onclick="buyPower(5)">強化 +5 (100×5)</button>
+    <button onclick="buyPower(10)">強化 +10 (100×10)</button><br>
+    <button onclick="gacha()">ガチャ (200)</button>
+  </div>
+</div>
+
+<!-- スキルツリー -->
+<div class="menu-section">
+  <h2 onclick="toggleMenu(this)">🌳 スキルツリー</h2>
+  <div class="menu-content" id="skillMenu">
+    攻撃 <span id="s_click">0</span> <button onclick="buySkill('click')">+</button><br>
+    自動 <span id="s_auto">0</span> <button onclick="buySkill('auto')">+</button><br>
+    クリ率 <span id="s_crit">0</span> <button onclick="buySkill('crit')">+</button><br>
+    ガチャ <span id="s_gacha">0</span> <button onclick="buySkill('gacha')">+</button><br>
+  </div>
+</div>
+
+<div id="msg" style="margin:6px;"></div>
+
+<!-- 音 -->
+<audio id="audioClick" src="click.mp3"></audio>
+<audio id="audioCrit" src="crit.mp3"></audio>
+<audio id="audioGacha" src="gacha.mp3"></audio>
+<audio id="audioSkill" src="skill.mp3"></audio>
 
 <script>
-let score = 0;
-let time = 10;
-let combo = 0;
-let clickPower = parseFloat(localStorage.getItem('power')) || 1;
-let highScore = parseInt(localStorage.getItem('high')) || 0;
-let auto = parseFloat(localStorage.getItem('auto')) || 0;
+// 基本変数
+let score=0, time=10, combo=0;
+let power=parseFloat(localStorage.getItem("p"))||1;
+let auto=parseFloat(localStorage.getItem("a"))||0;
+let high=parseInt(localStorage.getItem("h"))||0;
+let rebirth=parseInt(localStorage.getItem("r"))||0;
+let skillActive=false;
+let skills = JSON.parse(localStorage.getItem("skills")) || {click:0, auto:0, crit:0, gacha:0};
 
-let timer, comboTimer, autoTimer;
+const el=id=>document.getElementById(id);
 
-const el = id => document.getElementById(id);
+// メニュー開閉
+function toggleMenu(header){ header.nextElementSibling.classList.toggle("hidden"); }
 
-function update() {
-  el("score").textContent = Math.floor(score);
-  el("time").textContent = time;
-  el("power").textContent = clickPower.toFixed(2);
-  el("combo").textContent = combo;
-  el("auto").textContent = auto.toFixed(1);
-  el("highScore").textContent = highScore;
+// 表示更新
+function update(){
+  el("score").textContent=Math.floor(score);
+  el("time").textContent=time;
+  el("power").textContent=power.toFixed(2);
+  el("combo").textContent=combo;
+  el("auto").textContent=auto;
+  el("high").textContent=high;
+  el("rebirth").textContent=rebirth;
+  el("multi").textContent=(1+rebirth*0.2).toFixed(1);
+
+  el("s_click").textContent=skills.click;
+  el("s_auto").textContent=skills.auto;
+  el("s_crit").textContent=skills.crit;
+  el("s_gacha").textContent=skills.gacha;
 }
 
-function clickAction(x = window.innerWidth/2, y = window.innerHeight/2) {
-  let multi = 1 + combo * 0.1;
+// クリック処理
+function clickAction(x=200,y=300){
+  document.getElementById("audioClick").currentTime=0;
+  document.getElementById("audioClick").play();
 
-  let crit = Math.random() < 0.1;
-  let gain = clickPower * multi;
+  let multi = 1 + Math.log2(combo+1);
+  let critChance = 0.1 + skills.crit*0.02;
+  let crit = Math.random()<critChance;
+  if(crit){
+    document.getElementById("audioCrit").currentTime=0;
+    document.getElementById("audioCrit").play();
+    document.body.style.transform="translateX(5px)";
+    setTimeout(()=>document.body.style.transform="",50);
+  }
 
-  if (crit) gain *= 3;
+  let gain = power*multi*(1+rebirth*0.2)*(1+skills.click*0.2);
+  if(skillActive) gain *= 10;
 
   score += gain;
   combo++;
 
-  showEffect((crit ? "💥" : "+") + gain.toFixed(1), x, y, crit);
+  show("+"+gain.toFixed(1),x,y,crit);
 
-  clearTimeout(comboTimer);
-  comboTimer = setTimeout(() => combo = 0, 1000);
+  clearTimeout(window.comboReset);
+  window.comboReset = setTimeout(()=>combo=0,1000);
 
   update();
 }
+el("clickBtn").onclick = e=>clickAction(e.clientX,e.clientY);
 
-el("clickBtn").onclick = (e) => {
-  clickAction(e.clientX, e.clientY);
-};
+// ゲーム開始
+function start(){
+  score=0; time=10; combo=0;
+  clearInterval(window.t); clearInterval(window.a);
 
-function startGame() {
-  score = 0;
-  time = 10;
-  combo = 0;
-
-  clearInterval(timer);
-  clearInterval(autoTimer);
-
-  timer = setInterval(() => {
+  window.t=setInterval(()=>{
     time--;
-    if (time <= 0) endGame();
+    if(time<=3) document.body.style.background="darkred";
+    if(time<=0) end();
     update();
-  }, 1000);
+  },1000);
 
-  autoTimer = setInterval(() => {
-    for (let i = 0; i < auto; i++) clickAction();
-  }, 1000);
+  window.a=setInterval(()=>{
+    score += auto*power*(1+rebirth*0.2)*(1+skills.auto*0.5);
+    update();
+  },1000);
+}
 
+// ゲーム終了
+function end(){
+  clearInterval(window.t); clearInterval(window.a);
+  if(score>high){high=score; localStorage.setItem("h",high);}
+  power += Math.sqrt(score)*0.5;
+  localStorage.setItem("p",power);
+  localStorage.setItem("a",auto);
+  update();
+  alert("スコア:"+Math.floor(score));
+}
+
+// まとめ購入
+function buyAuto(count=1){
+  let cost = 50*count;
+  if(score<cost){ alert("スコア不足"); return; }
+  score-=cost; auto+=count; update();
+}
+function buyPower(count=1){
+  let cost = 100*count;
+  if(score<cost){ alert("スコア不足"); return; }
+  score-=cost; power+=0.5*count; update();
+}
+
+// ガチャ
+function gacha(){
+  if(score<200){ el("msg").textContent="スコア不足"; return;}
+  score-=200;
+  document.getElementById("audioGacha").currentTime=0;
+  document.getElementById("audioGacha").play();
+
+  let luck = skills.gacha*0.02;
+  let r=Math.random()+luck;
+  let msg="";
+  if(r<0.5){ power+=1; msg="ノーマル +1"; }
+  else if(r<0.8){ auto+=2; msg="レア 自動+2"; }
+  else if(r<0.95){ combo+=10; msg="激レア コンボ+10"; }
+  else{ power*=2; msg="神 パワー2倍"; }
+  el("msg").textContent=msg;
   update();
 }
 
-function endGame() {
-  clearInterval(timer);
-  clearInterval(autoTimer);
-
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('high', highScore);
-  }
-
-  clickPower += score * 0.01;
-  localStorage.setItem('power', clickPower);
-  localStorage.setItem('auto', auto);
-
-  alert("終了！スコア: " + Math.floor(score));
+// スキル発動
+function skill(){
+  if(skillActive) return;
+  skillActive=true;
+  el("msg").textContent="🔥10倍中！";
+  document.getElementById("audioSkill").currentTime=0;
+  document.getElementById("audioSkill").play();
+  setTimeout(()=>{skillActive=false; el("msg").textContent="";},5000);
 }
 
-function buyAuto() {
-  if (score >= 50) {
-    score -= 50;
-    auto += 1;
-    update();
-  }
-}
-
-function buyPower() {
-  if (score >= 100) {
-    score -= 100;
-    clickPower += 0.5;
-    update();
-  }
-}
-
-/* 🎰 ガチャ */
-function gacha() {
-  if (score < 200) {
-    el("gachaResult").textContent = "スコア不足！";
-    return;
-  }
-
-  score -= 200;
-
-  let r = Math.random();
-  let result = "";
-
-  if (r < 0.5) {
-    clickPower += 1;
-    result = "ノーマル！ +1";
-  } else if (r < 0.8) {
-    clickPower += 3;
-    result = "レア！ +3";
-  } else if (r < 0.95) {
-    clickPower += 7;
-    result = "激レア！ +7";
-  } else {
-    clickPower += 20;
-    result = "神！！ +20";
-  }
-
-  el("gachaResult").textContent = result;
+// 転生
+function rebirthAction(){
+  let rp=Math.floor(Math.sqrt(score/1000));
+  if(rp<=0){ alert("スコア不足"); return; }
+  if(!confirm("転生して "+rp+" ポイント獲得？")) return;
+  rebirth+=rp;
+  score=0; power=1; auto=0; combo=0;
+  localStorage.setItem("r",rebirth);
+  localStorage.setItem("p",power);
+  localStorage.setItem("a",auto);
   update();
 }
 
-/* エフェクト */
-function showEffect(text, x, y, crit=false) {
-  const e = document.createElement("div");
-  e.className = "effect";
-  e.textContent = text;
+// スキル購入
+function buySkill(type){
+  if(rebirth<=0){alert("RP不足"); return;}
+  rebirth--; skills[type]++; 
+  localStorage.setItem("r",rebirth);
+  localStorage.setItem("skills",JSON.stringify(skills));
+  update();
+}
 
-  e.style.left = x + "px";
-  e.style.top = y + "px";
-  e.style.color = crit ? "red" : "yellow";
-  e.style.fontSize = crit ? "28px" : "20px";
-
+// エフェクト
+function show(text,x,y,crit){
+  let e=document.createElement("div");
+  e.className="effect";
+  e.textContent=text;
+  e.style.left=x+"px";
+  e.style.top=y+"px";
+  e.style.color=crit?"red":"yellow";
   document.body.appendChild(e);
-  setTimeout(() => e.remove(), 800);
+  setTimeout(()=>e.remove(),800);
 }
 
-function resetData() {
-  localStorage.clear();
-  location.reload();
-}
+// 放置報酬
+window.onload=()=>{
+  let last=localStorage.getItem("last");
+  if(last){ let diff=(Date.now()-last)/1000; score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5);}
+  update();
+};
+window.onbeforeunload=()=>{ localStorage.setItem("last",Date.now()); }
+
+// リセット
+function reset(){ localStorage.clear(); location.reload(); }
 
 update();
-</script></body>
+</script>
+
+</body>
 </html>
