@@ -9,16 +9,17 @@ body { margin:0; font-family:sans-serif; background:#f0f2f5; }
 .header { background:#4CAF50; color:white; padding:15px; font-size:20px; text-align:center; }
 .stats { display:flex; justify-content:space-around; padding:10px; background:white; }
 .stat { text-align:center; }
-#parksContainer { display:flex; flex-wrap:wrap; justify-content:center; }
-.parkBox { background:white; border-radius:10px; margin:5px; padding:5px; width:200px; }
-.parkTitle { text-align:center; font-weight:bold; }
 #level { text-align:center; margin:5px; }
 #adNotice { text-align:center; color:#ff5722; font-weight:bold; }
+#parksContainer { display:flex; flex-wrap:wrap; justify-content:center; }
+.parkBox { background:white; border-radius:10px; margin:5px; padding:5px; width:220px; }
+.parkTitle { text-align:center; font-weight:bold; margin-bottom:3px; }
 #parking { display:grid; grid-template-columns: repeat(5,1fr); gap:5px; }
 .slot { background:#ddd; aspect-ratio:1; border-radius:8px; position:relative; overflow:hidden; margin-bottom:2px; }
 .car { position:absolute; width:80%; height:80%; border-radius:6px; top:10%; left:10%; transition:top 1s ease, left 1s ease; }
-.controls { position:fixed; bottom:0; width:100%; display:flex; background:white; padding:5px; box-shadow:0 -2px 5px rgba(0,0,0,0.1);}
-button { flex:1; margin:1px; padding:10px; font-size:16px; border:none; border-radius:8px; }
+.controls { display:flex; flex-wrap:wrap; justify-content:center; padding:5px; margin-bottom:10px; }
+button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-radius:8px; min-width:60px; }
+#carInfo { background:white; margin:5px; padding:5px; border-radius:8px; }
 .pop { position:absolute; color:white; font-weight:bold; pointer-events:none; animation:pop 1s ease forwards; }
 @keyframes pop { 0% {opacity:1; transform:translateY(0);} 100% {opacity:0; transform:translateY(-50px);} }
 </style>
@@ -37,10 +38,9 @@ button { flex:1; margin:1px; padding:10px; font-size:16px; border:none; border-r
 
 <div id="parksContainer"></div>
 
-<div class="controls">
-  <button onclick="expandAll()">拡張</button>
-  <button onclick="priceUpAll()">値上げ</button>
-  <button onclick="advertiseAll()">広告</button>
+<div id="carInfo">
+  <strong>🚘 車の種類と収益倍率:</strong><br>
+  普通: 1x (青), 高級: 3x (黄), スポーツ: 5x (オレンジ), VIP: 10x (紫)
 </div>
 
 <script>
@@ -50,11 +50,11 @@ let adBoost = 0;
 let totalEarned = 0;
 let level = 1;
 
-// 複数駐車場
+// 駐車場リスト（最初は郊外だけ表示）
 let parks = [
-  { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0 },
-  { name:"郊外", slots:8, price:80, cars:[], demandBase:0.6 },
-  { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8 }
+  { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true },
+  { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false },
+  { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8, unlocked:false }
 ];
 
 // 実績
@@ -72,13 +72,11 @@ function createCar(){
     { type:"スポーツ", rate:5, color:"#FF5722", stay:Math.random()*20+5 },
     { type:"VIP", rate:10, color:"#9C27B0", stay:Math.random()*25+10 }
   ];
-  let r = Math.random();
-  let t;
-  if(r<0.03) t=types[3]; 
-  else if(r<0.1) t=types[2]; 
-  else if(r<0.2) t=types[1];
-  else t=types[0];
-  return { type:t.type, rate:t.rate, color:t.color, stay:t.stay };
+  let r=Math.random();
+  if(r<0.03) return types[3];
+  else if(r<0.1) return types[2];
+  else if(r<0.2) return types[1];
+  else return types[0];
 }
 
 // ====== 需要計算 ======
@@ -95,7 +93,7 @@ function update(){
   document.getElementById("money").textContent=Math.floor(money);
   document.getElementById("levelNum").textContent=level;
   document.getElementById("adNotice").textContent=adBoost>0?"📢 広告中!":"";
-  document.getElementById("parkCount").textContent=parks.length;
+  document.getElementById("parkCount").textContent=parks.filter(p=>p.unlocked).length;
   renderParks();
   checkAchievements();
 }
@@ -105,6 +103,7 @@ function renderParks(){
   const container=document.getElementById("parksContainer");
   container.innerHTML="";
   parks.forEach((park,i)=>{
+    if(!park.unlocked) return;
     const box=document.createElement("div");
     box.className="parkBox";
     const title=document.createElement("div");
@@ -112,6 +111,7 @@ function renderParks(){
     title.textContent=`${park.name} (¥${park.price})`;
     box.appendChild(title);
 
+    // 駐車場スロット
     const grid=document.createElement("div");
     grid.style.display="grid";
     grid.style.gridTemplateColumns="repeat(5,1fr)";
@@ -128,25 +128,31 @@ function renderParks(){
       grid.appendChild(slot);
     }
     box.appendChild(grid);
+
+    // 個別アップグレードボタン
+    const controls=document.createElement("div");
+    controls.className="controls";
+    const expandBtn=document.createElement("button");
+    expandBtn.textContent="拡張 500円";
+    expandBtn.onclick=()=>{ if(money>=500){ money-=500; park.slots++; update(); save(); unlockParks(); } };
+    const priceBtn=document.createElement("button");
+    priceBtn.textContent="値上げ 20円";
+    priceBtn.onclick=()=>{ park.price+=20; update(); save(); };
+    const adBtn=document.createElement("button");
+    adBtn.textContent="広告 500円";
+    adBtn.onclick=()=>{ if(money>=500){ money-=500; adBoost=0.5; update(); save(); } };
+    controls.appendChild(expandBtn); controls.appendChild(priceBtn); controls.appendChild(adBtn);
+    box.appendChild(controls);
+
     container.appendChild(box);
   });
 }
 
-// ====== 拡張/値上げ/広告全体 ======
-function expandAll(){
-  parks.forEach(p=>{
-    if(money>=500){ money-=500; p.slots++; }
+// ====== 駐車場アンロック ======
+function unlockParks(){
+  parks.forEach((p,i)=>{
+    if(!p.unlocked && totalEarned >= (i*5000)){ p.unlocked=true; alert(`🚀 ${p.name} がアンロックされました!`); }
   });
-  save();
-  update();
-}
-function priceUpAll(){
-  parks.forEach(p=>p.price+=20);
-  save();
-  update();
-}
-function advertiseAll(){
-  if(money>=500){ money-=500; adBoost=0.5; save(); }
 }
 
 // ====== 実績 ======
@@ -154,16 +160,6 @@ function checkAchievements(){
   achievements.forEach(a=>{
     if(!a.done && a.check()){ a.done=true; alert("🎉 実績解除: "+a.text); }
   });
-}
-
-// ====== ポップアップ収益 ======
-function showPop(text,color,slotElem){
-  const pop=document.createElement("div");
-  pop.className="pop";
-  pop.style.background=color;
-  pop.textContent=text;
-  slotElem.appendChild(pop);
-  setTimeout(()=>pop.remove(),1000);
 }
 
 // ====== レベルアップ ======
@@ -177,7 +173,8 @@ function checkLevel(){
 
 // ====== メインループ ======
 setInterval(()=>{
-  parks.forEach((park,pi)=>{
+  parks.forEach((park)=>{
+    if(!park.unlocked) return;
     // 入庫
     if(park.cars.length<park.slots && Math.random()<getDemand(park)){
       park.cars.push(createCar());
@@ -195,16 +192,17 @@ setInterval(()=>{
   });
   adBoost*=0.9;
   checkLevel();
+  unlockParks();
   update();
 },1000);
 
 // ====== セーブ/ロード ======
 function save(){
   const data={money,adBoost,parks,totalEarned,level,time:Date.now()};
-  localStorage.setItem("parkingGame2",JSON.stringify(data));
+  localStorage.setItem("parkingGame3",JSON.stringify(data));
 }
 function load(){
-  const raw=localStorage.getItem("parkingGame2");
+  const raw=localStorage.getItem("parkingGame3");
   if(!raw) return;
   const data=JSON.parse(raw);
   money=data.money??1000;
