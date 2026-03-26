@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>まつりちゃんの駐車場</title>
+<title>🚗 駐車場経営ゲーム 改良版7</title>
 <style>
 body { margin:0; font-family:sans-serif; background:#f0f2f5; }
 .header { background:#4CAF50; color:white; padding:15px; font-size:20px; text-align:center; }
@@ -12,21 +12,18 @@ body { margin:0; font-family:sans-serif; background:#f0f2f5; }
 #level, #nextUnlock { text-align:center; margin:5px; }
 #adNotice { text-align:center; color:#ff5722; font-weight:bold; }
 #parksContainer { display:flex; flex-wrap:wrap; justify-content:center; }
-.parkBox { background:white; border-radius:10px; margin:5px; padding:5px; width:220px; }
+.parkBox { background:white; border-radius:10px; margin:5px; padding:5px; width:240px; }
 .parkTitle { text-align:center; font-weight:bold; margin-bottom:3px; }
-#parking { display:grid; grid-template-columns: repeat(5,1fr); gap:5px; }
 .slot { background:#ddd; aspect-ratio:1; border-radius:8px; position:relative; overflow:hidden; margin-bottom:2px; }
 .car { position:absolute; width:80%; height:80%; border-radius:6px; top:10%; left:10%; transition:top 1s ease, left 1s ease; }
 .controls { display:flex; flex-wrap:wrap; justify-content:center; padding:5px; margin-bottom:10px; }
 button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-radius:8px; min-width:50px; }
 #carInfo { background:white; margin:5px; padding:5px; border-radius:8px; }
-.pop { position:absolute; color:white; font-weight:bold; pointer-events:none; animation:pop 1s ease forwards; }
-@keyframes pop { 0% {opacity:1; transform:translateY(0);} 100% {opacity:0; transform:translateY(-50px);} }
 </style>
 </head>
 <body>
 
-<div class="header">まつりちゃんの駐車場</div>
+<div class="header">🚗 駐車場経営 改良版7</div>
 
 <div class="stats">
   <div class="stat">💰所持金<br><span id="money">0</span></div>
@@ -52,13 +49,14 @@ let adBoost = 0;
 let totalEarned = 0;
 let level = 1;
 
-// 駐車場リスト（最初は郊外のみ表示）
 let parks = [
-  { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true, unlockAt:0 },
-  { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false, unlockAt:5000 },
-  { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8, unlocked:false, unlockAt:10000 },
-  { name:"住宅街", slots:4, price:70, cars:[], demandBase:0.5, unlocked:false, unlockAt:15000 },
-  { name:"空港前", slots:6, price:150, cars:[], demandBase:1.2, unlocked:false, unlockAt:20000 }
+  { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true, unlockAt:0, expandCost:500, priceUpCost:20, priceDownCost:20, adCost:500 },
+  { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false, unlockAt:5000, expandCost:1000, priceUpCost:40, priceDownCost:30, adCost:1000 },
+  { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8, unlocked:false, unlockAt:10000, expandCost:1200, priceUpCost:50, priceDownCost:40, adCost:1200 },
+  { name:"住宅街", slots:4, price:70, cars:[], demandBase:0.5, unlocked:false, unlockAt:15000, expandCost:800, priceUpCost:15, priceDownCost:10, adCost:800 },
+  { name:"空港前", slots:6, price:150, cars:[], demandBase:1.2, unlocked:false, unlockAt:20000, expandCost:2000, priceUpCost:60, priceDownCost:50, adCost:2000 },
+  { name:"高級住宅街", slots:5, price:180, cars:[], demandBase:1.0, unlocked:false, unlockAt:35000, expandCost:2500, priceUpCost:80, priceDownCost:70, adCost:2500 },
+  { name:"高速道路前", slots:6, price:90, cars:[], demandBase:0.8, unlocked:false, unlockAt:40000, expandCost:1800, priceUpCost:50, priceDownCost:40, adCost:1800 }
 ];
 
 // 実績
@@ -100,7 +98,6 @@ function update(){
   document.getElementById("adNotice").textContent=adBoost>0?"📢 広告中!":"";
   document.getElementById("parkCount").textContent=parks.filter(p=>p.unlocked).length;
 
-  // 次アンロック表示
   const nextPark = parks.find(p=>!p.unlocked);
   document.getElementById("nextUnlock").textContent = nextPark ?
     `次の駐車場「${nextPark.name}」は総収入 ${nextPark.unlockAt}円でアンロック` : "";
@@ -145,26 +142,53 @@ function renderParks(){
     controls.className="controls";
 
     const expandBtn=document.createElement("button");
-    expandBtn.textContent="拡張 500円";
-    expandBtn.onclick=()=>{ if(money>=500){ money-=500; park.slots++; update(); save(); unlockParks(); } };
+    expandBtn.textContent=`拡張 ${park.expandCost}円`;
+    expandBtn.onclick=()=>{
+      if(money>=park.expandCost){
+        money-=park.expandCost;
+        park.slots++;
+        park.expandCost=Math.floor(park.expandCost*1.5);
+        update(); save(); unlockParks();
+      }
+    };
 
     const priceUpBtn=document.createElement("button");
-    priceUpBtn.textContent="値上げ 20円";
-    priceUpBtn.onclick=()=>{ park.price+=20; update(); save(); };
+    priceUpBtn.textContent=`値上げ ${park.priceUpCost}円`;
+    priceUpBtn.onclick=()=>{
+      if(money>=park.priceUpCost){
+        money-=park.priceUpCost;
+        park.price+=20;
+        park.priceUpCost=Math.floor(park.priceUpCost*1.3);
+        update(); save();
+      }
+    };
 
     const priceDownBtn=document.createElement("button");
-    priceDownBtn.textContent="値下げ 20円";
-    priceDownBtn.onclick=()=>{ park.price=Math.max(20, park.price-20); update(); save(); };
+    priceDownBtn.textContent=`値下げ ${park.priceDownCost}円`;
+    priceDownBtn.onclick=()=>{
+      if(money>=park.priceDownCost){
+        money-=park.priceDownCost;
+        park.price=Math.max(20,park.price-20);
+        park.priceDownCost=Math.floor(park.priceDownCost*1.2);
+        update(); save();
+      }
+    };
 
     const adBtn=document.createElement("button");
-    adBtn.textContent="広告 500円";
-    adBtn.onclick=()=>{ if(money>=500){ money-=500; adBoost=0.5; update(); save(); } };
+    adBtn.textContent=`広告 ${park.adCost}円`;
+    adBtn.onclick=()=>{
+      if(money>=park.adCost){
+        money-=park.adCost;
+        adBoost=0.5;
+        park.adCost=Math.floor(park.adCost*1.4);
+        update(); save();
+      }
+    };
 
     controls.appendChild(expandBtn);
     controls.appendChild(priceUpBtn);
     controls.appendChild(priceDownBtn);
     controls.appendChild(adBtn);
-
     box.appendChild(controls);
     container.appendChild(box);
   });
@@ -172,8 +196,11 @@ function renderParks(){
 
 // ====== 駐車場アンロック ======
 function unlockParks(){
-  parks.forEach((p,i)=>{
-    if(!p.unlocked && totalEarned >= p.unlockAt){ p.unlocked=true; alert(`🚀 ${p.name} がアンロックされました!`); }
+  parks.forEach(p=>{
+    if(!p.unlocked && totalEarned >= p.unlockAt){
+      p.unlocked=true;
+      alert(`🚀 ${p.name} がアンロックされました!`);
+    }
   });
 }
 
@@ -197,16 +224,13 @@ function checkLevel(){
 setInterval(()=>{
   parks.forEach((park)=>{
     if(!park.unlocked) return;
-    // 入庫
     if(park.cars.length<park.slots && Math.random()<getDemand(park)){
       park.cars.push(createCar());
     }
-    // 滞在減少
     park.cars.forEach(c=>c.stay--);
-    // 出庫
     const leaving=park.cars.filter(c=>c.stay<=0);
     park.cars=park.cars.filter(c=>c.stay>0);
-    leaving.forEach((c)=>{
+    leaving.forEach(c=>{
       const earning=park.price*c.rate;
       money+=earning;
       totalEarned+=earning;
@@ -221,10 +245,10 @@ setInterval(()=>{
 // ====== セーブ/ロード ======
 function save(){
   const data={money,adBoost,parks,totalEarned,level,time:Date.now()};
-  localStorage.setItem("parkingGame5",JSON.stringify(data));
+  localStorage.setItem("parkingGame7",JSON.stringify(data));
 }
 function load(){
-  const raw=localStorage.getItem("parkingGame5");
+  const raw=localStorage.getItem("parkingGame7");
   if(!raw) return;
   const data=JSON.parse(raw);
   money=data.money??1000;
