@@ -2,261 +2,229 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>神クリックゲーム v3 アップグレード版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>まつりちゃんの駐車場</title>
 <style>
-html { touch-action: manipulation; font-size:16px; }
-body { text-align:center; font-family:Impact,sans-serif; background:radial-gradient(circle,#0f2027,#000); color:white; margin:0; padding:5px;}
-h1{ font-size:28px; text-shadow:0 0 10px cyan; margin:10px 0;}
-button { padding:16px 24px; margin:4px; font-size:18px; border:none; border-radius:10px; background:linear-gradient(45deg, red, orange); color:white; min-width:90px; }
-.effect { position:absolute; animation: float 0.8s forwards; font-weight:bold; }
-@keyframes float { to { transform: translateY(-80px); opacity:0;} }
-.menu-section { border:2px solid cyan; border-radius:10px; padding:10px; margin:6px 0; background: rgba(0,0,0,0.5);}
-.menu-section h2 { margin:0 0 6px 0; cursor:pointer; user-select:none; font-size:18px; }
-.menu-content.hidden { display:none; }
-#volumeSlider { width:80%; }
-@media(max-width:480px){ button{font-size:16px; padding:12px 18px;} }
+body { margin:0; font-family:sans-serif; background:#f0f2f5; }
+.header { background:#4CAF50; color:white; padding:15px; font-size:20px; text-align:center; }
+.stats { display:flex; justify-content:space-around; padding:10px; background:white; }
+.stat { text-align:center; }
+#parksContainer { display:flex; flex-wrap:wrap; justify-content:center; }
+.parkBox { background:white; border-radius:10px; margin:5px; padding:5px; width:200px; }
+.parkTitle { text-align:center; font-weight:bold; }
+#level { text-align:center; margin:5px; }
+#adNotice { text-align:center; color:#ff5722; font-weight:bold; }
+#parking { display:grid; grid-template-columns: repeat(5,1fr); gap:5px; }
+.slot { background:#ddd; aspect-ratio:1; border-radius:8px; position:relative; overflow:hidden; margin-bottom:2px; }
+.car { position:absolute; width:80%; height:80%; border-radius:6px; top:10%; left:10%; transition:top 1s ease, left 1s ease; }
+.controls { position:fixed; bottom:0; width:100%; display:flex; background:white; padding:5px; box-shadow:0 -2px 5px rgba(0,0,0,0.1);}
+button { flex:1; margin:1px; padding:10px; font-size:16px; border:none; border-radius:8px; }
+.pop { position:absolute; color:white; font-weight:bold; pointer-events:none; animation:pop 1s ease forwards; }
+@keyframes pop { 0% {opacity:1; transform:translateY(0);} 100% {opacity:0; transform:translateY(-50px);} }
 </style>
 </head>
 <body>
 
-<h1>まつりちゃんクリックゲーム</h1>
+<div class="header">まつりちゃんの駐車場</div>
 
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">📊 ステータス</h2>
-<div class="menu-content" id="statusMenu">
-スコア: <span id="score">0</span><br>
-パワー: <span id="power">1</span><br>
-コンボ: <span id="combo">0</span><br>
-自動: <span id="auto">0</span>/秒<br>
-転生: <span id="rebirth">0</span><br>
-倍率: <span id="multi">1</span><br>
-</div>
+<div class="stats">
+  <div class="stat">💰<br><span id="money">0</span></div>
+  <div class="stat">🅿️駐車場数<br><span id="parkCount">0</span></div>
 </div>
 
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">🎮 ゲーム操作</h2>
-<div class="menu-content" id="gameMenu">
-<button id="clickBtn">クリック</button><br>
-<button onclick="skill()">スキル (10倍)</button>
-<button onclick="rebirthAction()">転生</button>
-</div>
-</div>
+<div id="level">レベル: <span id="levelNum">1</span></div>
+<div id="adNotice"></div>
 
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">🛒 ショップ/ガチャ</h2>
-<div class="menu-content" id="shopMenu">
-<button onclick="buyAuto(1)">自動 +1</button>
-<button onclick="buyPower(1)">強化 +1</button><br>
-<button onclick="gacha()">ガチャ (200)</button>
-<button onclick="buyEnhancement('combo',1)">コンボ強化</button>
-<button onclick="buyEnhancement('crit',1)">クリ率強化</button>
-<button onclick="buyEnhancement('multi',1)">スコア倍率強化</button>
-</div>
-</div>
+<div id="parksContainer"></div>
 
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">🌳 スキルツリー</h2>
-<div class="menu-content" id="skillMenu">
-攻撃 <span id="s_click">0</span> <button onclick="buySkill('click')">+</button><br>
-自動 <span id="s_auto">0</span> <button onclick="buySkill('auto')">+</button><br>
-クリ率 <span id="s_crit">0</span> <button onclick="buySkill('crit')">+</button><br>
-ガチャ <span id="s_gacha">0</span> <button onclick="buySkill('gacha')">+</button><br>
+<div class="controls">
+  <button onclick="expandAll()">拡張</button>
+  <button onclick="priceUpAll()">値上げ</button>
+  <button onclick="advertiseAll()">広告</button>
 </div>
-</div>
-
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">⏱ ボーナス & ガチャ情報</h2>
-<div class="menu-content" id="bonusMenu">
-<button onclick="buyTimeExtension()">時間延長 +10秒</button>
-</div>
-</div>
-
-<div class="menu-section">
-<h2 onclick="toggleMenu(this)">🔊 音量設定</h2>
-<div class="menu-content" id="volumeMenu">
-<input type="range" min="0" max="1" step="0.01" id="volumeSlider" value="0.5">
-<span id="volumeValue">50%</span>
-</div>
-</div>
-
-<div id="msg" style="margin:6px;"></div>
-
-<audio id="audioClick" src="https://arspark.jp/material/wp-content/uploads/2023/08/arsnd_00236_buttonon.mp3"></audio>
-<audio id="audioCrit" src="https://orangefreesounds.com/wp-content/uploads/2024/01/Critical-hit-sound-effect.mp3"></audio>
-<audio id="audioGacha" src="https://arspark.jp/material/wp-content/uploads/2023/08/arsnd_00246_rareitem.mp3"></audio>
-<audio id="audioSkill" src="https://arspark.jp/material/wp-content/uploads/2023/04/arsnd_00029_levelups.mp3"></audio>
-<audio id="audioLevelUp" src="https://orangefreesounds.com/wp-content/uploads/2024/12/Game-level-up-sound-effect.mp3"></audio>
-<audio id="audioRebirth" src="https://arspark.jp/material/wp-content/uploads/2023/04/arsnd_00003_coinmari.mp3"></audio>
 
 <script>
-// --- メニュー開閉 ---
-function toggleMenu(header){ header.nextElementSibling.classList.toggle("hidden"); }
+// ====== データ ======
+let money = 1000;
+let adBoost = 0;
+let totalEarned = 0;
+let level = 1;
 
-// --- ゲーム初期値 ---
-let score=0, time=10, combo=0;
-let power=parseFloat(localStorage.getItem("p"))||1;
-let auto=parseFloat(localStorage.getItem("a"))||0;
-let high=parseInt(localStorage.getItem("h"))||0;
-let rebirth=parseInt(localStorage.getItem("r"))||0;
-let skillActive=false;
-let skills=JSON.parse(localStorage.getItem("skills"))||{click:0,auto:0,crit:0,gacha:0};
-let multiBonus=parseFloat(localStorage.getItem("multiBonus"))||1;
+// 複数駐車場
+let parks = [
+  { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0 },
+  { name:"郊外", slots:8, price:80, cars:[], demandBase:0.6 },
+  { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8 }
+];
 
-// 購入回数管理（価格上昇用）
-let buyCount = JSON.parse(localStorage.getItem("buyCount")) || {combo:0,crit:0,multi:0,power:0,auto:0,skill:{click:0,auto:0,crit:0,gacha:0}};
+// 実績
+let achievements = [
+  { id:"money1", text:"1万円達成", done:false, check:()=> totalEarned>=10000 },
+  { id:"vip1", text:"VIP車入庫", done:false, check:()=> parks.some(p=>p.cars.some(c=>c.type==="VIP")) },
+  { id:"slots20", text:"合計スロット20台", done:false, check:()=> parks.reduce((a,b)=>a+b.slots,0)>=20 }
+];
 
-const el=id=>document.getElementById(id);
-let lastSound=0;
-function playSound(id){const now=Date.now();if(now-lastSound<50)return;el(id).currentTime=0;el(id).play();lastSound=now;}
-function updateUI(){
-  el("score").textContent=Math.floor(score);
-  el("power").textContent=power.toFixed(2);
-  el("combo").textContent=combo;
-  el("auto").textContent=auto;
-  el("multi").textContent=multiBonus.toFixed(1);
-  el("s_click").textContent=skills.click;
-  el("s_auto").textContent=skills.auto;
-  el("s_crit").textContent=skills.crit;
-  el("s_gacha").textContent=skills.gacha;
+// ====== 車生成 ======
+function createCar(){
+  const types = [
+    { type:"普通", rate:1, color:"#2196F3", stay:Math.random()*10+5 },
+    { type:"高級", rate:3, color:"#FFD700", stay:Math.random()*15+5 },
+    { type:"スポーツ", rate:5, color:"#FF5722", stay:Math.random()*20+5 },
+    { type:"VIP", rate:10, color:"#9C27B0", stay:Math.random()*25+10 }
+  ];
+  let r = Math.random();
+  let t;
+  if(r<0.03) t=types[3]; 
+  else if(r<0.1) t=types[2]; 
+  else if(r<0.2) t=types[1];
+  else t=types[0];
+  return { type:t.type, rate:t.rate, color:t.color, stay:t.stay };
 }
 
-// --- クリックアクション ---
-function clickAction(x=200,y=300){
-  playSound("audioClick");
-  let multi = 1 + Math.log2(combo+1);
-  let critChance = 0.1 + skills.crit*0.02;
-  let crit = Math.random() < critChance;
-  if(crit) playSound("audioCrit");
-  let gain = power * multi * (1 + rebirth*0.2) * (1 + skills.click*0.2) * multiBonus;
-  if(skillActive) gain *= 10;
-  score += gain; combo += skills.click;
-  clearTimeout(window.comboReset);
-  window.comboReset=setTimeout(()=>combo=0,1000);
-  updateUI();
-  show("+"+gain.toFixed(1), x, y, crit);
-  if(score>high && score-high>10) playSound("audioLevelUp");
+// ====== 需要計算 ======
+function getDemand(park){
+  let d = park.demandBase - (park.price/400);
+  d += adBoost;
+  d += (Math.random()-0.5)*0.2;
+  d *= 1+(level-1)*0.1;
+  return Math.max(0.05, Math.min(1,d));
 }
 
-// --- スキル発動 ---
-function skill(){ if(skillActive) return; skillActive=true; el("msg").textContent="🔥10倍中！"; playSound("audioSkill"); setTimeout(()=>{skillActive=false;el("msg").textContent="";},5000); }
-
-// --- 転生 ---
-function rebirthAction(){
-  let rp = Math.floor(Math.sqrt(score/1000));
-  if(rp<=0){ alert("スコア不足"); return; }
-  if(!confirm("転生して "+rp+" ポイント獲得？")) return;
-  rebirth += rp; score=0; power=1; auto=0; combo=0;
-  localStorage.setItem("r",rebirth);
-  localStorage.setItem("p",power);
-  localStorage.setItem("a",auto);
-  updateUI();
-  playSound("audioRebirth");
+// ====== 更新 ======
+function update(){
+  document.getElementById("money").textContent=Math.floor(money);
+  document.getElementById("levelNum").textContent=level;
+  document.getElementById("adNotice").textContent=adBoost>0?"📢 広告中!":"";
+  document.getElementById("parkCount").textContent=parks.length;
+  renderParks();
+  checkAchievements();
 }
 
-// --- スキル購入（RP使用） ---
-function buySkill(type){
-  let cost = Math.floor(1 * Math.pow(1.5, buyCount.skill[type])); // RP消費上昇
-  if(rebirth < cost){ alert("RP不足"); return; }
-  rebirth -= cost;
-  skills[type]++;
-  buyCount.skill[type]++;
-  localStorage.setItem("skills", JSON.stringify(skills));
-  localStorage.setItem("r", rebirth);
-  localStorage.setItem("buyCount", JSON.stringify(buyCount));
-  updateUI();
-}
+// ====== 駐車場描画 ======
+function renderParks(){
+  const container=document.getElementById("parksContainer");
+  container.innerHTML="";
+  parks.forEach((park,i)=>{
+    const box=document.createElement("div");
+    box.className="parkBox";
+    const title=document.createElement("div");
+    title.className="parkTitle";
+    title.textContent=`${park.name} (¥${park.price})`;
+    box.appendChild(title);
 
-// --- ガチャ ---
-function gacha(){
-  if(score<200){ el("msg").textContent="スコア不足"; return; }
-  score -= 200; updateUI();
-  let slot=document.createElement("div"); slot.className="effect";
-  slot.style.left="50%"; slot.style.top="50%"; slot.style.fontSize="24px"; slot.style.transform="translate(-50%, -50%)";
-  document.body.appendChild(slot);
-  let count=0;
-  let spin=setInterval(()=>{
-    const icons=["🎁","✨","💎","🔥"];
-    slot.textContent = icons[Math.floor(Math.random()*icons.length)];
-    count++;
-    if(count>10){
-      clearInterval(spin);
-      let luck = skills.gacha*0.02;
-      let r = Math.random() + luck;
-      let msg="", color="";
-      if(r<0.5){ power+=1; msg="ノーマル +1"; color="yellow"; playSound("audioClick"); }
-      else if(r<0.8){ auto+=2; msg="レア 自動+2"; color="blue"; playSound("audioSkill"); }
-      else if(r<0.95){ combo+=10; msg="激レア コンボ+10"; color="purple"; playSound("audioSkill"); }
-      else{ power*=2; msg="神 パワー2倍"; color="red"; playSound("audioSkill"); }
-      slot.textContent=msg; slot.style.color=color; slot.style.fontSize="28px"; setTimeout(()=>slot.remove(),1500);
-      updateUI();
+    const grid=document.createElement("div");
+    grid.style.display="grid";
+    grid.style.gridTemplateColumns="repeat(5,1fr)";
+    grid.style.gap="5px";
+    for(let j=0;j<park.slots;j++){
+      const slot=document.createElement("div");
+      slot.className="slot";
+      if(park.cars[j]){
+        const car=document.createElement("div");
+        car.className="car";
+        car.style.background=park.cars[j].color;
+        slot.appendChild(car);
+      }
+      grid.appendChild(slot);
     }
-  },100);
+    box.appendChild(grid);
+    container.appendChild(box);
+  });
 }
 
-// --- アップグレード購入 ---
-function buyEnhancement(type, count=1){
-  const baseCost = {combo:150, crit:150, multi:300};
-  let cost=0;
-  for(let i=0;i<count;i++){
-    cost += Math.floor(baseCost[type]*Math.pow(1.2, buyCount[type]));
-    buyCount[type]++;
+// ====== 拡張/値上げ/広告全体 ======
+function expandAll(){
+  parks.forEach(p=>{
+    if(money>=500){ money-=500; p.slots++; }
+  });
+  save();
+  update();
+}
+function priceUpAll(){
+  parks.forEach(p=>p.price+=20);
+  save();
+  update();
+}
+function advertiseAll(){
+  if(money>=500){ money-=500; adBoost=0.5; save(); }
+}
+
+// ====== 実績 ======
+function checkAchievements(){
+  achievements.forEach(a=>{
+    if(!a.done && a.check()){ a.done=true; alert("🎉 実績解除: "+a.text); }
+  });
+}
+
+// ====== ポップアップ収益 ======
+function showPop(text,color,slotElem){
+  const pop=document.createElement("div");
+  pop.className="pop";
+  pop.style.background=color;
+  pop.textContent=text;
+  slotElem.appendChild(pop);
+  setTimeout(()=>pop.remove(),1000);
+}
+
+// ====== レベルアップ ======
+function checkLevel(){
+  const newLevel=Math.floor(totalEarned/20000)+1;
+  if(newLevel>level){
+    level=newLevel;
+    alert(`⚡ レベルアップ! レベル${level}`);
   }
-  if(score<cost){ alert("スコア不足"); return; }
+}
 
-  score -= cost;
-  switch(type){
-    case "combo": skills.click+=count; el("msg").textContent=`コンボ強化 +${count}`; break;
-    case "crit": skills.crit+=count; el("msg").textContent=`クリ率強化 +${count}`; break;
-    case "multi": multiBonus+=0.1*count; el("msg").textContent=`スコア倍率強化 +${(0.1*count).toFixed(1)}倍`; break;
+// ====== メインループ ======
+setInterval(()=>{
+  parks.forEach((park,pi)=>{
+    // 入庫
+    if(park.cars.length<park.slots && Math.random()<getDemand(park)){
+      park.cars.push(createCar());
+    }
+    // 滞在減少
+    park.cars.forEach(c=>c.stay--);
+    // 出庫
+    const leaving=park.cars.filter(c=>c.stay<=0);
+    park.cars=park.cars.filter(c=>c.stay>0);
+    leaving.forEach((c,ci)=>{
+      const earning=park.price*c.rate;
+      money+=earning;
+      totalEarned+=earning;
+    });
+  });
+  adBoost*=0.9;
+  checkLevel();
+  update();
+},1000);
+
+// ====== セーブ/ロード ======
+function save(){
+  const data={money,adBoost,parks,totalEarned,level,time:Date.now()};
+  localStorage.setItem("parkingGame2",JSON.stringify(data));
+}
+function load(){
+  const raw=localStorage.getItem("parkingGame2");
+  if(!raw) return;
+  const data=JSON.parse(raw);
+  money=data.money??1000;
+  adBoost=data.adBoost??0;
+  parks=data.parks??parks;
+  totalEarned=data.totalEarned??0;
+  level=data.level??1;
+  if(data.time){
+    const seconds=Math.min((Date.now()-data.time)/1000,3600*4);
+    const potential=Math.floor(seconds*parks.reduce((a,b)=>a.slots+b.slots,0)*100*0.2);
+    money+=potential;
+    totalEarned+=potential;
+    alert(`💰 放置報酬: ${Math.floor(potential)}円`);
   }
-  localStorage.setItem("skills", JSON.stringify(skills));
-  localStorage.setItem("multiBonus", multiBonus);
-  localStorage.setItem("buyCount", JSON.stringify(buyCount));
-  updateUI();
 }
-
-// --- 自動収益とパワー購入 ---
-function buyAuto(count=1){
-  const base=50; let cost=0;
-  for(let i=0;i<count;i++){ cost+=Math.floor(base*Math.pow(1.3,buyCount.auto)); buyCount.auto++; }
-  if(score<cost){ alert("スコア不足"); return; }
-  score-=cost; auto+=count; localStorage.setItem("a",auto); localStorage.setItem("buyCount", JSON.stringify(buyCount)); updateUI();
-}
-function buyPower(count=1){
-  const base=100; let cost=0;
-  for(let i=0;i<count;i++){ cost+=Math.floor(base*Math.pow(1.3,buyCount.power)); buyCount.power++; }
-  if(score<cost){ alert("スコア不足"); return; }
-  score-=cost; power+=count; localStorage.setItem("p",power); localStorage.setItem("buyCount", JSON.stringify(buyCount)); updateUI();
-}
-
-// --- 時間延長 ---
-function buyTimeExtension(){ let cost=150; if(score<cost){ alert("スコア不足"); return; } score-=cost; time+=10; el("msg").textContent="⏱ 10秒延長!"; updateUI(); }
-
-// --- エフェクト表示 ---
-function show(text,x,y,crit){
-  let e=document.createElement("div"); e.className="effect";
-  e.textContent=text; e.style.left=x+"px"; e.style.top=y+"px";
-  e.style.color=crit?"red":"yellow";
-  document.body.appendChild(e); setTimeout(()=>e.remove(),800);
-}
-
-// --- クリックボタン ---
-el("clickBtn").onclick=e=>{clickAction(e.clientX,e.clientY);};
-el("clickBtn").addEventListener("touchstart",e=>{e.preventDefault();clickAction(e.touches[0].clientX,e.touches[0].clientY);});
-
-// --- 音量調整 ---
-const volumeSlider=el("volumeSlider"); const volumeValue=el("volumeValue");
-volumeSlider.oninput=()=>{ let vol=parseFloat(volumeSlider.value); ["audioClick","audioCrit","audioGacha","audioSkill","audioLevelUp","audioRebirth"].forEach(id=>el(id).volume=vol); volumeValue.textContent=Math.round(vol*100)+"%"; }
-
-// --- 放置報酬 ---
-window.onload=()=>{
-  let last=localStorage.getItem("last");
-  if(last){ let diff=(Date.now()-last)/1000; score+=diff*auto*(1+rebirth*0.2)*(1+skills.auto*0.5)*multiBonus; }
-  updateUI();
-};
-window.onbeforeunload=()=>{ localStorage.setItem("last",Date.now()); }
-
+setInterval(save,5000);
+window.addEventListener("beforeunload",save);
+load();
+update();
 </script>
+
 </body>
 </html>
