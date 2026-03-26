@@ -110,7 +110,7 @@ function update(){
 function renderParks(){
   const container=document.getElementById("parksContainer");
   container.innerHTML="";
-  parks.forEach((park,i)=>{
+  parks.forEach((park)=>{
     if(!park.unlocked) return;
     const box=document.createElement("div");
     box.className="parkBox";
@@ -231,7 +231,7 @@ setInterval(()=>{
     const leaving=park.cars.filter(c=>c.stay<=0);
     park.cars=park.cars.filter(c=>c.stay>0);
     leaving.forEach(c=>{
-      const earning=park.price*c.rate;
+      const earning=Math.floor(park.price*c.rate);
       money+=earning;
       totalEarned+=earning;
     });
@@ -242,33 +242,57 @@ setInterval(()=>{
   update();
 },1000);
 
-// ====== セーブ/ロード ======
+// ====== セーブ/ロード（放置報酬統合版） ======
 function save(){
-  const data={money,adBoost,parks,totalEarned,level,time:Date.now()};
-  localStorage.setItem("parkingGame7",JSON.stringify(data));
+  const data={money, adBoost, parks, totalEarned, level, time:Date.now()};
+  localStorage.setItem("parkingGame7", JSON.stringify(data));
 }
+
 function load(){
-  const raw=localStorage.getItem("parkingGame7");
+  const raw = localStorage.getItem("parkingGame7");
   if(!raw) return;
-  const data=JSON.parse(raw);
-  money=data.money??1000;
-  adBoost=data.adBoost??0;
-  parks=data.parks??parks;
-  totalEarned=data.totalEarned??0;
-  level=data.level??1;
+  const data = JSON.parse(raw);
+
+  money = data.money ?? 1000;
+  adBoost = data.adBoost ?? 0;
+  parks = data.parks ?? parks;
+  totalEarned = data.totalEarned ?? 0;
+  level = data.level ?? 1;
+
+  // 放置報酬計算
   if(data.time){
-    const seconds=Math.min((Date.now()-data.time)/1000,3600*4);
-    const potential=Math.floor(seconds*parks.reduce((a,b)=>a.slots+b.slots,0)*100*0.2);
-    money+=potential;
-    totalEarned+=potential;
-    alert(`💰 放置報酬: ${Math.floor(potential)}円`);
+    const secondsRaw = (Date.now() - data.time) / 1000;
+    const seconds = isFinite(secondsRaw) ? Math.min(secondsRaw, 3600*4) : 0;
+
+    let potential = 0;
+    parks.forEach(park=>{
+      if(!park.unlocked) return;
+      // 車ごとの報酬計算（rate * price * 需要 * 秒数簡易換算）
+      park.cars.forEach(car=>{
+        const demand = getDemand(park);
+        if(isFinite(car.rate) && isFinite(park.price) && isFinite(demand)){
+          potential += Math.floor(car.rate * park.price * demand * (seconds / 10));
+        }
+      });
+      // 空きスロット分も簡易報酬
+      const emptySlots = park.slots - park.cars.length;
+      if(emptySlots > 0){
+        potential += Math.floor(emptySlots * park.price * 0.1 * seconds / 10);
+      }
+    });
+
+    if(!isFinite(potential)) potential = 0;
+    money += potential;
+    totalEarned += potential;
+    if(potential > 0) alert(`💰 放置報酬: ${potential}円`);
   }
 }
+
 setInterval(save,5000);
-window.addEventListener("beforeunload",save);
+window.addEventListener("beforeunload", save);
 load();
 update();
-</script>
 
+</script>
 </body>
 </html>
