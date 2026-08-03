@@ -37,7 +37,17 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 <div id="economyInfo" style="text-align:center;color:#2196F3;"></div>
 <div id="eventInfo" style="text-align:center;color:#E91E63;"></div>
 <div id="adNotice"></div>
+<div id="dateInfo" style="text-align:center;font-weight:bold;margin:5px;">
+📅 2026年1月1日
+</div>
 
+<div id="economyInfo" style="text-align:center;color:#2196F3;">
+📈 景気：普通
+</div>
+
+<div id="eventInfo" style="text-align:center;color:#E91E63;">
+🎉 イベント：なし
+</div>
 <div id="parksContainer"></div>
 
 <div id="carInfo">
@@ -65,6 +75,7 @@ let economy = {
 
 let economyLuck = 0; // 景気運レベル
 let currentEvent = "なし";
+  let dayTimer = 0;
 let parks = [
   { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true, unlockAt:0, expandCost:500, priceUpCost:20, priceDownCost:20, adCost:500 },
   { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false, unlockAt:5000, expandCost:1000, priceUpCost:40, priceDownCost:30, adCost:1000 },
@@ -113,6 +124,14 @@ function update(){
   document.getElementById("levelNum").textContent=level;
   document.getElementById("adNotice").textContent=adBoost>0?"📢 広告中!":"";
   document.getElementById("parkCount").textContent=parks.filter(p=>p.unlocked).length;
+  document.getElementById("dateInfo").textContent =
+`📅 ${gameDate.year}年 ${gameDate.month}月 ${gameDate.day}日`;
+
+document.getElementById("economyInfo").textContent =
+`📈 景気：${economy.name}`;
+
+document.getElementById("eventInfo").textContent =
+`🎉 イベント：${currentEvent}`;
 
   const nextPark = parks.find(p=>!p.unlocked);
   document.getElementById("dateInfo").textContent =
@@ -243,9 +262,13 @@ function checkLevel(){
     alert(`⚡ レベルアップ! レベル${level}`);
   }
 }
-
+// ====== 日付・景気・イベント ======
+function advanceDay(){
+    ...
+}
 // ====== メインループ ======
 setInterval(()=>{
+    dayTimer++;
   parks.forEach((park)=>{
     if(!park.unlocked) return;
     if(park.cars.length<park.slots && Math.random()<getDemand(park)){
@@ -260,12 +283,19 @@ setInterval(()=>{
       totalEarned+=earning;
     });
   });
-  adBoost*=0.9;
+    adBoost*=0.9;
+
+  // 30秒でゲーム内1日進む
+  if(dayTimer >= 30){
+    dayTimer = 0;
+    advanceDay();
+  }
+
   checkLevel();
   unlockParks();
   update();
-},1000);
 
+},1000);
 // ====== セーブ/ロード（放置報酬統合版） ======
 function save(){
   const data={money, adBoost, parks, totalEarned, level, time:Date.now()};
