@@ -33,6 +33,9 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 
 <div id="level">レベル: <span id="levelNum">1</span></div>
 <div id="nextUnlock"></div>
+  <div id="dateInfo" style="text-align:center;font-weight:bold;margin:5px;"></div>
+<div id="economyInfo" style="text-align:center;color:#2196F3;"></div>
+<div id="eventInfo" style="text-align:center;color:#E91E63;"></div>
 <div id="adNotice"></div>
 
 <div id="parksContainer"></div>
@@ -48,7 +51,20 @@ let money = 1000;
 let adBoost = 0;
 let totalEarned = 0;
 let level = 1;
+// ====== 日付システム ======
+let gameDate = {
+  year: 2026,
+  month: 1,
+  day: 1
+};
 
+let economy = {
+  name: "普通",
+  bonus: 1.0
+};
+
+let economyLuck = 0; // 景気運レベル
+let currentEvent = "なし";
 let parks = [
   { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true, unlockAt:0, expandCost:500, priceUpCost:20, priceDownCost:20, adCost:500 },
   { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false, unlockAt:5000, expandCost:1000, priceUpCost:40, priceDownCost:30, adCost:1000 },
