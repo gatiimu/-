@@ -115,6 +115,14 @@ function update(){
   document.getElementById("parkCount").textContent=parks.filter(p=>p.unlocked).length;
 
   const nextPark = parks.find(p=>!p.unlocked);
+  document.getElementById("dateInfo").textContent =
+`📅 ${gameDate.year}年 ${gameDate.month}月 ${gameDate.day}日`;
+
+document.getElementById("economyInfo").textContent =
+`📈 景気：${economy.name}`;
+
+document.getElementById("eventInfo").textContent =
+`🎉 イベント：${currentEvent}`;
   document.getElementById("nextUnlock").textContent = nextPark ?
     `次の駐車場「${nextPark.name}」は総収入 ${nextPark.unlockAt}円でアンロック` : "";
 
