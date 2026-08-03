@@ -250,6 +250,21 @@ function checkLevel(){
 
 // ====== メインループ ======
 setInterval(()=>{
+  // 時間経過（30秒で1日）
+gameDate.day++;
+
+if(gameDate.day > 30){
+  gameDate.day = 1;
+  gameDate.month++;
+}
+
+if(gameDate.month > 12){
+  gameDate.month = 1;
+  gameDate.year++;
+}
+
+document.getElementById("dateInfo").textContent =
+`${gameDate.year}年 ${gameDate.month}月 ${gameDate.day}日`;
   parks.forEach((park)=>{
     if(!park.unlocked) return;
     if(park.cars.length<park.slots && Math.random()<getDemand(park)){
