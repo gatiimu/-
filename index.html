@@ -23,7 +23,7 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 </head>
 <body>
 
-<div class="header">まつりちゃんの駐車場</div>
+<div class="header" onclick="adminTap()">まつりちゃんの駐車場</div>
 
 <div class="stats">
   <div class="stat">💰所持金<br><span id="money">0</span></div>
@@ -353,7 +353,97 @@ setInterval(save,5000);
 window.addEventListener("beforeunload", save);
 load();
 update();
+load();
+update();
+// ===== 管理者パネル =====
+
+let adminTapCount = 0;
+
+function adminTap(){
+  adminTapCount++;
+
+  if(adminTapCount >= 5){
+    adminTapCount = 0;
+    openAdmin();
+  }
+
+  setTimeout(() => {
+    adminTapCount = 0;
+  }, 2000);
+}
+
+function openAdmin(){
+  const pass = prompt("管理者パスワード");
+
+  if(pass === "matsuri"){
+    document.getElementById("adminPanel").style.display = "block";
+  }else{
+    alert("パスワードが違います");
+  }
+}
+
+function adminClose(){
+  document.getElementById("adminPanel").style.display = "none";
+}
+
+function adminAddMoney(){
+  const amount = Number(prompt("追加する金額を入力してください"));
+
+  if(isNaN(amount) || amount <= 0){
+    alert("正しい金額を入力してください。");
+    return;
+  }
+
+  money += amount;
+  totalEarned += amount;
+
+  update();
+  save();
+
+  alert(amount.toLocaleString() + "円追加しました！");
+}
+
+function adminLevelUp(){
+  level++;
+  update();
+  save();
+}
+
+function adminUnlockAll(){
+  parks.forEach(p => p.unlocked = true);
+  update();
+  save();
+}
+
+function adminAchievement(){
+  achievements.forEach(a => a.done = true);
+  update();
+  save();
+}
+
+function adminDeleteSave(){
+  if(confirm("本当にセーブデータを削除しますか？")){
+    localStorage.removeItem("parkingGame7");
+    alert("セーブデータを削除しました。");
+    location.reload();
+  }
+}
 
 </script>
+<div id="adminPanel" style="display:none;position:fixed;top:10px;right:10px;background:#fff;border:2px solid #333;padding:10px;border-radius:10px;z-index:9999;">
+  <h3>🛠 管理者パネル</h3>
+
+  <button onclick="adminAddMoney()">💰好きな金額を追加</button><br><br>
+
+  <button onclick="adminLevelUp()">⭐レベル+1</button><br><br>
+
+  <button onclick="adminUnlockAll()">🅿️全駐車場解放</button><br><br>
+
+  <button onclick="adminAchievement()">🏆実績全解除</button><br><br>
+
+  <button onclick="adminDeleteSave()">🗑セーブデータ削除</button><br><br>
+
+  <button onclick="adminClose()">閉じる</button>
+</div>
 </body>
 </html>
