@@ -287,8 +287,21 @@ document.getElementById("dateInfo").textContent =
 
 // ====== セーブ/ロード（放置報酬統合版） ======
 function save(){
-  const data={money, adBoost, parks, totalEarned, level, time:Date.now()};
-  localStorage.setItem("parkingGame7", JSON.stringify(data));
+  const data = {
+  money,
+  adBoost,
+  parks,
+  totalEarned,
+  level,
+  gameDate,
+  economy,
+  economyLuck,
+  currentEvent,
+  achievements,
+  time: Date.now()
+};
+
+localStorage.setItem("parkingGame7", JSON.stringify(data));
 }
 
 function load(){
@@ -301,6 +314,11 @@ function load(){
   parks = data.parks ?? parks;
   totalEarned = data.totalEarned ?? 0;
   level = data.level ?? 1;
+  gameDate = data.gameDate ?? gameDate;
+economy = data.economy ?? economy;
+economyLuck = data.economyLuck ?? 0;
+currentEvent = data.currentEvent ?? "なし";
+achievements = data.achievements ?? achievements;
 
   // 放置報酬計算
   if(data.time){
