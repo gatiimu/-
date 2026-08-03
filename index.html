@@ -76,15 +76,15 @@ let parks = [
   { name:"三郷", slots:5, price:800, cars:[], demandBase:0.6, unlocked:false, unlockAt:100000, expandCost:5000, priceUpCost:20, priceDownCost:20, adCost:500 },
   { name:"東京", slots:5, price:1200, cars:[], demandBase:1.0, unlocked:false, unlockAt:500000, expandCost:10000, priceUpCost:40, priceDownCost:30, adCost:1000 },
   { name:"横浜", slots:6, price:1000, cars:[], demandBase:0.8, unlocked:false, unlockAt:1000000, expandCost:12000, priceUpCost:50, priceDownCost:40, adCost:1200 },
-  { name:"浜松", slots:4, price:7000, cars:[], demandBase:0.5, unlocked:false, unlockAt:150000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
-  { name:"名古屋", slots:6, price:15000, cars:[], demandBase:1.2, unlocked:false, unlockAt:2000000000, expandCost:20000, priceUpCost:60, priceDownCost:50, adCost:2000 },
-  { name:"京都", slots:5, price:180000, cars:[], demandBase:1.0, unlocked:false, unlockAt:350000000000, expandCost:25000, priceUpCost:80, priceDownCost:70, adCost:2500 },
-  { name:"大阪", slots:5, price:80000, cars:[], demandBase:0.6, unlocked:false, unlockAt:10000000, expandCost:5000, priceUpCost:20, priceDownCost:20, adCost:500 },
-  { name:"神戸", slots:5, price:120000, cars:[], demandBase:1.0, unlocked:false, unlockAt:50000000, expandCost:10000, priceUpCost:40, priceDownCost:30, adCost:1000 },
-  { name:"倉敷", slots:6, price:100000, cars:[], demandBase:0.8, unlocked:false, unlockAt:100000000, expandCost:12000, priceUpCost:50, priceDownCost:40, adCost:1200 },
-  { name:"広島", slots:4, price:700000, cars:[], demandBase:0.5, unlocked:false, unlockAt:15000000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
-  { name:"山口", slots:4, price:4000000, cars:[], demandBase:0.5, unlocked:false, unlockAt:15000000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
-  { name:"福岡（門司）", slots:6, price:90000000, cars:[], demandBase:0.8, unlocked:false, unlockAt:40000000000000, expandCost:18000, priceUpCost:50, priceDownCost:40, adCost:1800 }
+  { name:"浜松", slots:4, price:7000, cars:[], demandBase:0.5, unlocked:false, unlockAt:15000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
+  { name:"名古屋", slots:6, price:15000, cars:[], demandBase:1.2, unlocked:false, unlockAt:200000000, expandCost:20000, priceUpCost:60, priceDownCost:50, adCost:2000 },
+  { name:"京都", slots:5, price:180000, cars:[], demandBase:1.0, unlocked:false, unlockAt:350000000, expandCost:25000, priceUpCost:80, priceDownCost:70, adCost:2500 },
+  { name:"大阪", slots:5, price:80000, cars:[], demandBase:0.6, unlocked:false, unlockAt:100000000, expandCost:5000, priceUpCost:20, priceDownCost:20, adCost:500 },
+  { name:"神戸", slots:5, price:120000, cars:[], demandBase:1.0, unlocked:false, unlockAt:500000000, expandCost:10000, priceUpCost:40, priceDownCost:30, adCost:1000 },
+  { name:"倉敷", slots:6, price:100000, cars:[], demandBase:0.8, unlocked:false, unlockAt:1000000000, expandCost:12000, priceUpCost:50, priceDownCost:40, adCost:1200 },
+  { name:"広島", slots:4, price:700000, cars:[], demandBase:0.5, unlocked:false, unlockAt:150000000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
+  { name:"山口", slots:4, price:4000000, cars:[], demandBase:0.5, unlocked:false, unlockAt:150000000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
+  { name:"福岡（門司）", slots:6, price:90000000, cars:[], demandBase:0.8, unlocked:false, unlockAt:400000000000000, expandCost:18000, priceUpCost:50, priceDownCost:40, adCost:1800 }
 ];
 
 // 実績
@@ -250,6 +250,13 @@ function checkLevel(){
 
 // ====== メインループ ======
 setInterval(()=>{
+  // 駐車場解放チェック
+  parks.forEach(park=>{
+    if(!park.unlocked && money >= park.unlockAt){
+      park.unlocked = true;
+      alert(`🅿️ ${park.name}が解放されました！`);
+    }
+  });
   // 時間経過（30秒で1日）
 gameDate.day++;
 
