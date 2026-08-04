@@ -22,8 +22,14 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 </style>
 </head>
 <body>
-
 <div class="header" onclick="adminTap()">まつりちゃんの駐車場</div>
+
+<div style="text-align:center; margin:10px;">
+  <button onclick="resetGame()" style="background:#f44336;color:white;">
+    🔄 ゲームをリセット
+     </button>
+</div>
+
 
 <div class="stats">
   <div class="stat">💰所持金<br><span id="money">0</span></div>
@@ -46,6 +52,13 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 </div>
 
 <script>
+
+  function resetGame(){
+  if(confirm("セーブデータを削除して最初から始めますか？")){
+    localStorage.removeItem("parkingGame7");
+    location.reload();
+  }
+  }
 // ====== データ ======
 let money = 1000;
 let adBoost = 0;
