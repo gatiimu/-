@@ -413,6 +413,8 @@ function adminAddMoney(){
 
   money += amount;
   totalEarned += amount;
+  unlockParks();
+checkLevel();
 
   update();
   save();
