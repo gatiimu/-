@@ -80,7 +80,6 @@ function changeEconomy(){
   document.getElementById("economyInfo").textContent =
     "景気：" + economy.name;
 }
-};
 
 let economyLuck = 0; // 景気運レベル
 let currentEvent = "なし";
@@ -295,7 +294,7 @@ document.getElementById("dateInfo").textContent =
     const leaving=park.cars.filter(c=>c.stay<=0);
     park.cars=park.cars.filter(c=>c.stay>0);
     leaving.forEach(c=>{
-      const earning=Math.floor(park.price*c.rate);
+      const earning = Math.floor(park.price * c.rate * economy.bonus);
       money+=earning;
       totalEarned+=earning;
     });
