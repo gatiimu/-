@@ -147,7 +147,7 @@ const defaultParks = [
   { name:"山口", slots:4, price:4000000, cars:[], demandBase:0.5, unlocked:false, unlockAt:150000000000, expandCost:8000, priceUpCost:15, priceDownCost:10, adCost:800 },
   { name:"福岡（門司）", slots:6, price:90000000, cars:[], demandBase:0.8, unlocked:false, unlockAt:400000000000000, expandCost:18000, priceUpCost:50, priceDownCost:40, adCost:1800 }
 ];
-
+let parks = JSON.parse(JSON.stringify(defaultParks));
 // 実績
 let achievements = [
   { id:"money1", text:"1万円達成", done:false, check:()=> totalEarned>=10000 },
@@ -285,11 +285,20 @@ function renderParks(){
 
 // ====== 駐車場アンロック ======
 function unlockParks(){
-  parks.forEach(p=>{
-    if(totalEarned >= p.unlockAt){
+  let unlockedNew = false;
+
+  parks.forEach(p => {
+    if (!p.unlocked && totalEarned >= p.unlockAt) {
       p.unlocked = true;
+      unlockedNew = true;
+      alert(`🅿️ 新しい駐車場「${p.name}」がアンロックされました！`);
     }
   });
+
+  if (unlockedNew) {
+    save();
+    update();
+  }
 }
 
 // ====== 実績 ======
@@ -342,10 +351,16 @@ document.getElementById("dateInfo").textContent =
       totalEarned+=earning;
     });
   });
-  adBoost*=0.9;
-  checkLevel();
-  unlockParks();
-  update();
+ adBoost *= 0.9;
+
+checkLevel();
+unlockParks();
+
+if (Math.random() < 0.3) {
+  save();
+}
+
+update();
 },1000);
 
 // ====== セーブ/ロード（放置報酬統合版） ======
@@ -406,8 +421,13 @@ achievements = data.achievements ?? achievements;
     });
 
     if(!isFinite(potential)) potential = 0;
-    money += potential;
-    totalEarned += potential;
+   potential = Math.max(0, Math.floor(potential));
+
+money += potential;
+totalEarned += potential;
+
+unlockParks();
+checkLevel();
     if(potential > 0) alert(`💰 放置報酬: ${potential}円`);
   }
 }
@@ -415,7 +435,10 @@ achievements = data.achievements ?? achievements;
 setInterval(save,5000);
 window.addEventListener("beforeunload", save);
 load();
+unlockParks();
+checkLevel();
 update();
+
 
 // ===== 管理者パネル =====
 
