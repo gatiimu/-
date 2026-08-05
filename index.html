@@ -53,39 +53,42 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 
 <script>
 function resetGame(){
-  if(confirm("セーブデータを削除して最初から始めますか？")){
+  if(!confirm("セーブデータを削除して最初から始めますか？")) return;
 
-    localStorage.removeItem("parkingGame7");
+  localStorage.removeItem("parkingGame7");
 
-    money = 1000;
-    adBoost = 0;
-    totalEarned = 0;
-    level = 1;
+  money = 1000;
+  adBoost = 0;
+  totalEarned = 0;
+  level = 1;
 
-    gameDate = {
-      year: 2026,
-      month: 1,
-      day: 1
-    };
+  gameDate = {
+    year: 2026,
+    month: 1,
+    day: 1
+  };
 
-    economy = {
-      name: "普通",
-      bonus: 1.0
-    };
+  economy = {
+    name: "普通",
+    bonus: 1.0
+  };
 
-    economyLuck = 0;
-    currentEvent = "なし";
+  economyLuck = 0;
+  currentEvent = "なし";
 
-    parks = JSON.parse(JSON.stringify(defaultParks));
+  parks = JSON.parse(JSON.stringify(defaultParks));
 
-    achievements.forEach(a => a.done = false);
+  achievements = [
+    { id:"money1", text:"1万円達成", done:false, check:()=> totalEarned>=10000 },
+    { id:"vip1", text:"VIP車入庫", done:false, check:()=> parks.some(p=>p.cars.some(c=>c.type==="VIP")) },
+    { id:"slots20", text:"合計スロット20台", done:false, check:()=> parks.reduce((a,b)=>a+b.slots,0)>=20 }
+  ];
 
-    update();
-    save();
+  save();
 
-    alert("ゲームを最初から開始します！");
-    location.reload();
-  }
+  alert("ゲームをリセットしました。");
+
+  location.reload();
 }
 // ====== データ ======
 let money = 1000;
@@ -122,7 +125,8 @@ function changeEconomy(){
 
 let economyLuck = 0; // 景気運レベル
 let currentEvent = "なし";
-let parks = [
+const defaultParks = [
+  let parks = JSON.parse(JSON.stringify(defaultParks));
   { name:"郊外", slots:5, price:80, cars:[], demandBase:0.6, unlocked:true, unlockAt:0, expandCost:500, priceUpCost:20, priceDownCost:20, adCost:500 },
   { name:"駅前", slots:5, price:120, cars:[], demandBase:1.0, unlocked:false, unlockAt:5000, expandCost:1000, priceUpCost:40, priceDownCost:30, adCost:1000 },
   { name:"商業街", slots:6, price:100, cars:[], demandBase:0.8, unlocked:false, unlockAt:10000, expandCost:1200, priceUpCost:50, priceDownCost:40, adCost:1200 },
