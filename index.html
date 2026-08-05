@@ -52,13 +52,41 @@ button { flex:1; margin:1px; padding:5px; font-size:14px; border:none; border-ra
 </div>
 
 <script>
-
-  function resetGame(){
+function resetGame(){
   if(confirm("セーブデータを削除して最初から始めますか？")){
+
     localStorage.removeItem("parkingGame7");
+
+    money = 1000;
+    adBoost = 0;
+    totalEarned = 0;
+    level = 1;
+
+    gameDate = {
+      year: 2026,
+      month: 1,
+      day: 1
+    };
+
+    economy = {
+      name: "普通",
+      bonus: 1.0
+    };
+
+    economyLuck = 0;
+    currentEvent = "なし";
+
+    parks = JSON.parse(JSON.stringify(defaultParks));
+
+    achievements.forEach(a => a.done = false);
+
+    update();
+    save();
+
+    alert("ゲームを最初から開始します！");
     location.reload();
   }
-  }
+}
 // ====== データ ======
 let money = 1000;
 let adBoost = 0;
